@@ -9,7 +9,8 @@
 std::vector<std::unique_ptr<Particle>> setupRandomUniformInitialState(
             unsigned int numberOfDimensions,
             unsigned int numberOfParticles,
-            Random& rng
+            Random& rng,
+            double lengthScale
         )
 {
     assert(numberOfDimensions > 0 && numberOfParticles > 0);
@@ -20,18 +21,8 @@ std::vector<std::unique_ptr<Particle>> setupRandomUniformInitialState(
         std::vector<double> position = std::vector<double>();
 
         for (unsigned int j=0; j < numberOfDimensions; j++) {
-            /* This is where you should actually place the particles in
-             * some positions, according to some rule. Since this class is
-             * called random uniform, they should be placed randomly according
-             * to a uniform distribution here.
-             *
-             * Note: For now, the particles are simply placed in positions
-             * according to their index in the particles list (this is
-             * NOT a good idea).
-             */
-            position.push_back(i);
+            position.push_back(rng.nextDouble(-lengthScale, lengthScale));
         }
-
         particles.push_back(std::make_unique<Particle>(position));
     }
 

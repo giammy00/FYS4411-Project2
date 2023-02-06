@@ -9,6 +9,9 @@
 using std::cout;
 using std::endl;
 
+// No interaction
+// Spherical geometry
+
 HarmonicOscillator::HarmonicOscillator(double omega)
 {
     assert(omega > 0);
@@ -27,6 +30,12 @@ double HarmonicOscillator::computeLocalEnergy(
      * */
 
     double potentialEnergy = 0;
-    double kineticEnergy   = 0;
+    for (unsigned int i = 0; i < particles.size(); i++){
+        auto position = particles[i]->getPosition();
+        for (unsigned int i = 0; i<particles[0]->getNumberOfDimensions(); i++)
+            potentialEnergy += position[i]*position[i]*0.5;
+            // m = omega = 1
+    }
+    double kineticEnergy   = waveFunction.computeDoubleDerivative(particles)*0.5;
     return kineticEnergy + potentialEnergy;
 }

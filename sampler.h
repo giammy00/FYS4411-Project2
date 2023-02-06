@@ -11,7 +11,7 @@ public:
 
 
     void sample(bool acceptedStep, class System* system);
-    void printOutputToTerminal(class System& system);
+    void printOutputToTerminal(class System& system, unsigned int& equilibrationSteps, unsigned int& acceptedEquilibrationSteps);
     void computeAverages();
     double getEnergy() { return m_energy; }
 
@@ -23,4 +23,6 @@ private:
     unsigned int m_numberOfAcceptedSteps = 0;
     double m_energy = 0;
     double m_cumulativeEnergy = 0;
+    double m_energy2 = 0;
+    double m_cumulativeEnergy2 = 0;
 };

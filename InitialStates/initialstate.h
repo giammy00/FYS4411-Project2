@@ -10,5 +10,6 @@
 std::vector<std::unique_ptr<Particle>> setupRandomUniformInitialState(
             unsigned int numberOfDimensions,
             unsigned int numberOfParticles,
-            Random& randomEngine
+            Random& randomEngine,
+            double lengthScale
             );

@@ -50,6 +50,15 @@ public:
         std::uniform_real_distribution<double> dist(0, 1);
         return dist(m_engine);
     }
+
+    double nextDouble(const double &lowerLimit, const double &upperLimit) {
+        // Produces uniformly distributed random floating-point values in the
+        // half-open interval [lowerLimit, upperLimit).
+
+        std::uniform_real_distribution<double> dist(lowerLimit, upperLimit);
+        return dist(m_engine);
+    }
+
     double nextGaussian(
         const double &mean,
         const double &standardDeviation

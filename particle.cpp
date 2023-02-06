@@ -1,5 +1,5 @@
 #include "particle.h"
-#include <cassert>
+#include <assert.h>
 
 Particle::Particle(const std::vector<double>& position) {
     m_numberOfDimensions = position.size();
