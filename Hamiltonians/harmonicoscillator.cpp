@@ -29,13 +29,14 @@ double HarmonicOscillator::computeLocalEnergy(
      * to get the Laplacian of the wave function.
      * */
 
-    double potentialEnergy = 0;
+    double r2 = 0;
     for (unsigned int i = 0; i < particles.size(); i++){
         auto position = particles[i]->getPosition();
         for (unsigned int i = 0; i<particles[0]->getNumberOfDimensions(); i++)
-            potentialEnergy += position[i]*position[i]*0.5;
-            // m = omega = 1
+            r2 += position[i]*position[i];
     }
-    double kineticEnergy   = waveFunction.computeDoubleDerivative(particles)*0.5;
+    // m = omega = 1
+    double potentialEnergy = 0.5 * r2;
+    double kineticEnergy   = waveFunction.computeDoubleDerivative(particles)*-0.5;
     return kineticEnergy + potentialEnergy;
 }

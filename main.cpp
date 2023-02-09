@@ -31,37 +31,39 @@ int main() {
     unsigned int numberOfEquilibrationSteps = (unsigned int) 1e5;
     double omega = 1.0; // Oscillator frequency.
     double a_ho = std::sqrt(1./omega); // Characteristic size of the Harmonic Oscillator
-    double alpha = 2.0; // Variational parameter.
-    double stepLength = 0.1; // Metropolis step length.
+    double alpha = 0.5; // Variational parameter.
+    double stepLength = 0.5; // Metropolis step length.
     stepLength *= a_ho; // Scale the steplength in case of changed omega
 
-    // The random engine can also be built without a seed
-    auto rng = std::make_unique<Random>(seed);
-    // Initialize particles
-    auto particles = setupRandomUniformInitialState(numberOfDimensions, numberOfParticles, *rng, a_ho);//[x]
-    // Construct a unique pointer to a new System
-    auto system = std::make_unique<System>(//[x]
-            // Construct unique_ptr to Hamiltonian
-            std::make_unique<HarmonicOscillator>(omega),//[x]
-            // Construct unique_ptr to wave function
-            std::make_unique<SimpleGaussian>(alpha),//[x]
-            // Construct unique_ptr to solver, and move rng
-            std::make_unique<Metropolis>(std::move(rng)),//[x]
-            // Move the vector of particles to system
-            std::move(particles));
+    for(alpha = alpha; alpha < 2; alpha += 0.05){
 
-    // Run steps to equilibrate particles
-    auto acceptedEquilibrationSteps = system->runEquilibrationSteps(//[x]
-            stepLength,
-            numberOfEquilibrationSteps);
+        // The random engine can also be built without a seed
+        auto rng = std::make_unique<Random>(seed);
+        // Initialize particles
+        auto particles = setupRandomUniformInitialState(numberOfDimensions, numberOfParticles, *rng, a_ho);//[x]
+        // Construct a unique pointer to a new System
+        auto system = std::make_unique<System>(//[x]
+                // Construct unique_ptr to Hamiltonian
+                std::make_unique<HarmonicOscillator>(omega),//[x]
+                // Construct unique_ptr to wave function
+                std::make_unique<SimpleGaussian>(alpha),//[x]
+                // Construct unique_ptr to solver, and move rng
+                std::make_unique<Metropolis>(std::move(rng)),//[x]
+                // Move the vector of particles to system
+                std::move(particles));
 
-    // Run the Metropolis algorithm
-    auto sampler = system->runMetropolisSteps(//[ ]
-            stepLength,
-            numberOfMetropolisSteps);
+        // Run steps to equilibrate particles
+        auto acceptedEquilibrationSteps = system->runEquilibrationSteps(//[x]
+                stepLength,
+                numberOfEquilibrationSteps);
 
-    // Output information from the simulation
-    sampler->printOutputToTerminal(*system, numberOfEquilibrationSteps, acceptedEquilibrationSteps);//[ ]
+        // Run the Metropolis algorithm
+        auto sampler = system->runMetropolisSteps(//[ ]
+                stepLength,
+                numberOfMetropolisSteps);
 
+        // Output information from the simulation
+        sampler->printOutputToTerminalShort(*system, numberOfEquilibrationSteps, acceptedEquilibrationSteps);//[ ]
+    }
     return 0;
 }

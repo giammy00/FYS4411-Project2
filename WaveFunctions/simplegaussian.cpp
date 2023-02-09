@@ -20,12 +20,14 @@ double SimpleGaussian::evaluate(std::vector<std::unique_ptr<class Particle>>& pa
      * the particles are accessible through the particle[i]->getPosition()
      * function.
      */
-    double phi = 1;
+    // Returns Phi, not Phi^2
+    double r2 = 0;
     for (unsigned int i = 0; i < particles.size(); i++){
         std::vector<double> position = particles[i]->getPosition();
         for (unsigned int j = 0; j<position.size(); j++)
-            phi *= exp(-1*position[j]*position[j]*m_parameters[0]);
+            r2 += position[j]*position[j];
     }
+    double phi = exp(-1*r2*m_parameters[0]);
     return phi;
 }
 
@@ -40,11 +42,13 @@ double SimpleGaussian::computeDoubleDerivative(std::vector<std::unique_ptr<class
      */
     /* The second derivative of exp(-alpha x*x) is exp(-alpha x*x)*(4*alpha*alpha*x*x - 2*alpha)
     */
-    double sum = 0;
+    double r2 = 0;
     for (unsigned int i = 0; i < particles.size(); i++){
         std::vector<double> position = particles[i]->getPosition();
         for (unsigned int j = 0; j < particles[i]->getNumberOfDimensions(); j++)
-            sum += exp(-1*position[j]*position[j]*m_parameters[0]) * (4*position[j]*position[j]*m_parameters[0]*m_parameters[0] - 2*m_parameters[0]);
+            r2 += position[j]*position[j];
     }
-    return sum;
+    int n = particles.size() * particles[0]->getNumberOfDimensions();
+    double nabla2 = 4*m_parameters[0]*m_parameters[0]*r2 - 2*n*m_parameters[0];
+    return nabla2;
 }

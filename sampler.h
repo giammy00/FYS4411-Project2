@@ -12,6 +12,7 @@ public:
 
     void sample(bool acceptedStep, class System* system);
     void printOutputToTerminal(class System& system, unsigned int& equilibrationSteps, unsigned int& acceptedEquilibrationSteps);
+    void printOutputToTerminalShort(class System& system, unsigned int& equilibrationSteps, unsigned int& acceptedEquilibrationSteps);
     void computeAverages();
     double getEnergy() { return m_energy; }
 

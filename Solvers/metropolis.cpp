@@ -31,8 +31,10 @@ bool Metropolis::step(
     double step = m_rng->nextGaussian(0., stepLength);
     // TODO make function to compare energies of adjacent states [ ]
     double old_phi = waveFunction.evaluate(particles);
+    old_phi *= old_phi;
     particles[index]->adjustPosition(step, dimension);
     double new_phi = waveFunction.evaluate(particles);
+    new_phi *= new_phi;
 
     // cout << "old_phi = " << old_phi << endl;
     // cout << "new_phi = " << new_phi << endl;

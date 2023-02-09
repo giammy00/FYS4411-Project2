@@ -18,13 +18,9 @@ Sampler::Sampler(
         double stepLength,
         unsigned int numberOfMetropolisSteps)
 {
-    m_stepNumber = 0;
     m_numberOfMetropolisSteps = numberOfMetropolisSteps;
     m_numberOfParticles = numberOfParticles;
     m_numberOfDimensions = numberOfDimensions;
-    m_energy = 0;
-    m_cumulativeEnergy = 0;
-    m_numberOfAcceptedSteps = 0;
 }
 
 
@@ -54,6 +50,26 @@ void Sampler::printOutputToTerminal(System& system, unsigned int& equilibrationS
     cout << " Ratio of accepted steps: " << ((double) m_numberOfAcceptedSteps) / ((double) m_numberOfMetropolisSteps) << endl;
     cout << endl;
     cout << "  -- Wave function parameters -- " << endl;
+    cout << " Number of parameters : " << p << endl;
+    for (unsigned int i=0; i < p; i++) {
+        cout << " Parameter " << i+1 << " : " << pa.at(i) << endl;
+    }
+    cout << endl;
+    cout << "  -- Results -- " << endl;
+    cout << " Energy : " << m_energy << endl;
+    cout << " Variance in the energy : " << m_energy2 - m_energy * m_energy << endl;
+    cout << endl;
+}
+
+void Sampler::printOutputToTerminalShort(System& system, unsigned int& equilibrationSteps, unsigned int& acceptedEquilibrationSteps) {
+    auto pa = system.getWaveFunctionParameters();
+    auto p = pa.size();
+
+    cout << endl;
+    cout << "  -- System info -- " << endl;
+    cout << " Ratio of accepted equilibration steps: " << ((double) acceptedEquilibrationSteps) / ((double) equilibrationSteps) << endl;
+    cout << " Ratio of accepted steps: " << ((double) m_numberOfAcceptedSteps) / ((double) m_numberOfMetropolisSteps) << endl;
+    cout << endl;
     cout << " Number of parameters : " << p << endl;
     for (unsigned int i=0; i < p; i++) {
         cout << " Parameter " << i+1 << " : " << pa.at(i) << endl;
