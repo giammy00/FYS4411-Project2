@@ -12,11 +12,12 @@ public:
             std::unique_ptr<class MonteCarlo> solver,
             std::vector<std::unique_ptr<class Particle>> particles);
 
-    unsigned int runEquilibrationSteps(
+    std::unique_ptr<class Sampler> runEquilibrationSteps(
             double stepLength,
             unsigned int numberOfEquilibrationSteps);
 
     std::unique_ptr<class Sampler> runMetropolisSteps(
+            std::unique_ptr<class Sampler> sampler,
             double stepLength,
             unsigned int numberOfMetropolisSteps);
 

@@ -26,29 +26,28 @@ System::System(
 }
 
 
-unsigned int System::runEquilibrationSteps(
+std::unique_ptr<class Sampler> System::runEquilibrationSteps(
         double stepLength,
         unsigned int numberOfEquilibrationSteps)
-{
-    unsigned int acceptedSteps = 0;
-
-    for (unsigned int i = 0; i < numberOfEquilibrationSteps; i++) {
-        acceptedSteps += m_solver->step(stepLength, *m_waveFunction, m_particles);
-    }
-
-    return acceptedSteps;
-}
-
-std::unique_ptr<class Sampler> System::runMetropolisSteps(
-        double stepLength,
-        unsigned int numberOfMetropolisSteps)
 {
     auto sampler = std::make_unique<Sampler>(
             m_numberOfParticles,
             m_numberOfDimensions,
-            stepLength,
-            numberOfMetropolisSteps);
+            stepLength);
 
+    for (unsigned int i = 0; i < numberOfEquilibrationSteps; i++) {
+        sampler->equilibrationSample(m_solver->step(stepLength, *m_waveFunction, m_particles));
+
+    }
+
+    return sampler;
+}
+
+std::unique_ptr<class Sampler> System::runMetropolisSteps(
+        std::unique_ptr<class Sampler> sampler,
+        double stepLength,
+        unsigned int numberOfMetropolisSteps)
+{
     for (unsigned int i = 0; i < numberOfMetropolisSteps; i++) {
         /* Call solver method to do a single Monte-Carlo step.
          */

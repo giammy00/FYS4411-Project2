@@ -15,14 +15,16 @@ using std::endl;
 Sampler::Sampler(
         unsigned int numberOfParticles,
         unsigned int numberOfDimensions,
-        double stepLength,
-        unsigned int numberOfMetropolisSteps)
+        double stepLength)
 {
-    m_numberOfMetropolisSteps = numberOfMetropolisSteps;
     m_numberOfParticles = numberOfParticles;
     m_numberOfDimensions = numberOfDimensions;
 }
 
+void Sampler::equilibrationSample(bool acceptedStep){
+    m_equilibrationStepNumber++;
+    m_numberOfAcceptedEquilibrationSteps += acceptedStep;
+}
 
 void Sampler::sample(bool acceptedStep, System* system) {
     /* Here you should sample all the interesting things you want to measure.
@@ -35,19 +37,22 @@ void Sampler::sample(bool acceptedStep, System* system) {
     m_numberOfAcceptedSteps += acceptedStep;
 }
 
-void Sampler::printOutputToTerminal(System& system, unsigned int& equilibrationSteps, unsigned int& acceptedEquilibrationSteps) {
-    auto pa = system.getWaveFunctionParameters();
+void Sampler::transferWaveFunctionParameters(std::vector<double> &parameters){
+    m_waveFunctionParameters = parameters;
+}
+
+void Sampler::printOutputToTerminal() {
+    auto pa = m_waveFunctionParameters;
     auto p = pa.size();
 
     cout << endl;
     cout << "  -- System info -- " << endl;
     cout << " Number of particles  : " << m_numberOfParticles << endl;
     cout << " Number of dimensions : " << m_numberOfDimensions << endl;
-    cout << " Number of equilibration Metropolis steps run : 10^" << std::log10(equilibrationSteps) << endl;
-    cout << " Ratio of accepted equilibration steps: " << ((double) acceptedEquilibrationSteps) / ((double) equilibrationSteps) << endl;
-    cout << " Number of Metropolis steps run : 10^" << std::log10(m_numberOfMetropolisSteps) << endl;
-    cout << " Counted number of Metropolis steps run : 10^" << std::log10(m_stepNumber) << endl;
-    cout << " Ratio of accepted steps: " << ((double) m_numberOfAcceptedSteps) / ((double) m_numberOfMetropolisSteps) << endl;
+    cout << " Number of equilibration Metropolis steps run : 10^" << std::log10(m_equilibrationStepNumber) << endl;
+    cout << " Ratio of accepted equilibration steps: " << ((double) m_numberOfAcceptedEquilibrationSteps) / ((double) m_equilibrationStepNumber) << endl;
+    cout << " Number of Metropolis steps run : 10^" << std::log10(m_stepNumber) << endl;
+    cout << " Ratio of accepted steps: " << ((double) m_numberOfAcceptedSteps) / ((double) m_stepNumber) << endl;
     cout << endl;
     cout << "  -- Wave function parameters -- " << endl;
     cout << " Number of parameters : " << p << endl;
@@ -61,14 +66,14 @@ void Sampler::printOutputToTerminal(System& system, unsigned int& equilibrationS
     cout << endl;
 }
 
-void Sampler::printOutputToTerminalShort(System& system, unsigned int& equilibrationSteps, unsigned int& acceptedEquilibrationSteps) {
-    auto pa = system.getWaveFunctionParameters();
+void Sampler::printOutputToTerminalShort() {
+    auto pa = m_waveFunctionParameters;
     auto p = pa.size();
 
     cout << endl;
     cout << "  -- System info -- " << endl;
-    cout << " Ratio of accepted equilibration steps: " << ((double) acceptedEquilibrationSteps) / ((double) equilibrationSteps) << endl;
-    cout << " Ratio of accepted steps: " << ((double) m_numberOfAcceptedSteps) / ((double) m_numberOfMetropolisSteps) << endl;
+    cout << " Ratio of accepted equilibration steps: " << ((double) m_numberOfAcceptedEquilibrationSteps) / ((double) m_equilibrationStepNumber) << endl;
+    cout << " Ratio of accepted steps: " << ((double) m_numberOfAcceptedSteps) / ((double) m_stepNumber) << endl;
     cout << endl;
     cout << " Number of parameters : " << p << endl;
     for (unsigned int i=0; i < p; i++) {
@@ -84,6 +89,6 @@ void Sampler::printOutputToTerminalShort(System& system, unsigned int& equilibra
 void Sampler::computeAverages() {
     /* Compute the averages of the sampled quantities.
      */
-    m_energy = m_cumulativeEnergy / m_numberOfMetropolisSteps;
-    m_energy2 = m_cumulativeEnergy2 / m_numberOfMetropolisSteps;
+    m_energy = m_cumulativeEnergy / m_stepNumber;
+    m_energy2 = m_cumulativeEnergy2 / m_stepNumber;
 }
