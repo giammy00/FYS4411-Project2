@@ -37,7 +37,7 @@ void Sampler::sample(bool acceptedStep, System* system) {
     m_numberOfAcceptedSteps += acceptedStep;
 }
 
-void Sampler::transferWaveFunctionParameters(std::vector<double> &parameters){
+void Sampler::transferWaveFunctionParameters(std::vector<double> parameters){
     m_waveFunctionParameters = parameters;
 }
 

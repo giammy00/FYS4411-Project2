@@ -64,17 +64,17 @@ int main() {
     // Seed for the random number generator
     int seed = 2023;
 
-    unsigned int numberOfDimensions = 3;
+    unsigned int numberOfDimensions = 1;
     unsigned int numberOfParticles = 1;
-    unsigned int numberOfMetropolisSteps = (unsigned int) 1e6;
-    unsigned int numberOfEquilibrationSteps = (unsigned int) 1e5;
+    unsigned int numberOfMetropolisSteps = (unsigned int) 5;
+    unsigned int numberOfEquilibrationSteps = (unsigned int) 0;
     double omega = 1.0; // Oscillator frequency.
     double a_ho = std::sqrt(1./omega); // Characteristic size of the Harmonic Oscillator
     double alpha = 0.5; // Variational parameter.
     double stepLength = 0.5; // Metropolis step length.
     stepLength *= a_ho; // Scale the steplength in case of changed omega
 
-    for(alpha = alpha; alpha < 2; alpha += 0.05){
+    for(alpha = alpha; alpha < 0.75; alpha += 0.05){
 
         auto sampler = runSimulation(
                 numberOfDimensions,

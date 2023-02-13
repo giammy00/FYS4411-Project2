@@ -7,6 +7,8 @@
 #include "../system.h"
 #include "../particle.h"
 
+#include <iostream>
+
 SimpleGaussian::SimpleGaussian(double alpha)
 {
     assert(alpha > 0); // If alpha == 0 then the wavefunction doesn't go to zero
@@ -42,6 +44,7 @@ double SimpleGaussian::computeDoubleDerivative(std::vector<std::unique_ptr<class
      */
     /* The second derivative of exp(-alpha x*x) is exp(-alpha x*x)*(4*alpha*alpha*x*x - 2*alpha)
     */
+    //*
     double r2 = 0;
     for (unsigned int i = 0; i < particles.size(); i++){
         std::vector<double> position = particles[i]->getPosition();
@@ -50,5 +53,29 @@ double SimpleGaussian::computeDoubleDerivative(std::vector<std::unique_ptr<class
     }
     int n = particles.size() * particles[0]->getNumberOfDimensions();
     double nabla2 = 4*m_parameters[0]*m_parameters[0]*r2 - 2*n*m_parameters[0];
+
+    std::cout << nabla2 << std::endl;
+    // This line always closes a multiline comment */
+    //*
+    //double nabla2 = 0, phi, phi_plus, phi_minus;
+    double phi, phi_plus, phi_minus;
+    nabla2 = 0;
+    const double dx = 1e-5, dx2_1 = 1e10; // dx2_1 = 1/(dx*dx)
+    assert(abs(dx2_1 - 1/(dx*dx))<1);
+    phi = evaluate(particles);
+    for (unsigned int i = 0; i < particles.size(); i++){
+        for (unsigned int j = 0; j < particles[i]->getNumberOfDimensions(); j++){
+            particles[i]->adjustPosition(dx, j);
+            phi_plus = evaluate(particles);
+            particles[i]->adjustPosition(-2*dx, j);
+            phi_minus = evaluate(particles);
+            particles[i]->adjustPosition(dx, j);
+            
+            nabla2 += (phi_plus + phi_minus - 2*phi)*dx2_1;
+        }
+    }
+    std::cout << nabla2 << std::endl << std::endl;
+
+    // This line always closes a multiline comment */
     return nabla2;
 }

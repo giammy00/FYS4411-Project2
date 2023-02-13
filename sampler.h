@@ -12,7 +12,7 @@ public:
 
     void sample(bool acceptedStep, class System* system);
     void equilibrationSample(bool acceptedStep);
-    void transferWaveFunctionParameters(std::vector<double> &parameters);
+    void transferWaveFunctionParameters(std::vector<double> parameters);
     void printOutputToTerminal();
     void printOutputToTerminalShort();
     void computeAverages();
