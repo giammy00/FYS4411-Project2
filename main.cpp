@@ -2,6 +2,8 @@
 #include <vector>
 #include <memory>
 #include <math.h>
+#include <chrono>
+#include <string>
 
 #include "system.h"
 #include "WaveFunctions/simplegaussian.h"
@@ -59,23 +61,33 @@ std::unique_ptr<Sampler> runSimulation(
     // Return the results
     return sampler;
 }
-
+#define TIMEING
 int main() {
     // Seed for the random number generator
-    int seed = 2023;
+    // int seed = 2023;
 
-    unsigned int numberOfDimensions = 1;
+    unsigned int numberOfDimensions = 3;
     unsigned int numberOfParticles = 1;
-    unsigned int numberOfMetropolisSteps = (unsigned int) 5;
-    unsigned int numberOfEquilibrationSteps = (unsigned int) 0;
+    unsigned int numberOfMetropolisSteps = (unsigned int) 1E6;
+    unsigned int numberOfEquilibrationSteps = (unsigned int) 1E5;
     double omega = 1.0; // Oscillator frequency.
     double a_ho = std::sqrt(1./omega); // Characteristic size of the Harmonic Oscillator
     double alpha = 0.5; // Variational parameter.
     double stepLength = 0.5; // Metropolis step length.
     stepLength *= a_ho; // Scale the steplength in case of changed omega
 
-    for(alpha = alpha; alpha < 0.75; alpha += 0.05){
+    #ifdef TIMEING
+    auto times = vector<int>();
+    #endif
 
+    for(alpha = alpha; alpha < 1.75; alpha += 0.5){
+        #ifdef TIMEING
+        using std::chrono::high_resolution_clock;
+        using std::chrono::duration_cast;
+        using std::chrono::duration;
+        using std::chrono::milliseconds;
+        auto t1 = high_resolution_clock::now();
+        #endif
         auto sampler = runSimulation(
                 numberOfDimensions,
                 numberOfParticles,
@@ -86,8 +98,20 @@ int main() {
                 alpha,
                 stepLength);
 
+        #ifdef TIMEING
+        auto t2 = high_resolution_clock::now();
+
+        /* Getting number of milliseconds as an integer. */
+        auto ms_int = duration_cast<milliseconds>(t2 - t1);
+        times.push_back(ms_int.count());
+        #endif
         // Output information from the simulation
         sampler->printOutputToTerminalShort();//[ ]
     }
+
+    cout << "times : " << endl;
+    for(unsigned int i = 0; i<times.size(); i++)
+        cout << times[i] << endl;
+
     return 0;
 }

@@ -7,7 +7,7 @@
 #include "../system.h"
 #include "../particle.h"
 
-#include <iostream>
+// #include <iostream>
 
 SimpleGaussian::SimpleGaussian(double alpha)
 {
@@ -42,9 +42,12 @@ double SimpleGaussian::computeDoubleDerivative(std::vector<std::unique_ptr<class
      * This quantity is needed to compute the (local) energy (consider the
      * Schrödinger equation to see how the two are related).
      */
-    /* The second derivative of exp(-alpha x*x) is exp(-alpha x*x)*(4*alpha*alpha*x*x - 2*alpha)
-    */
-    //*
+    //***************WE RETURN d2/dx2(phi)/phi NOT d2/dx2(phi)*********************
+
+    // The second derivative of exp(-alpha x*x) is exp(-alpha x*x)*(4*alpha*alpha*x*x - 2*alpha)
+    
+    
+    /* Analytical expression
     double r2 = 0;
     for (unsigned int i = 0; i < particles.size(); i++){
         std::vector<double> position = particles[i]->getPosition();
@@ -54,13 +57,16 @@ double SimpleGaussian::computeDoubleDerivative(std::vector<std::unique_ptr<class
     int n = particles.size() * particles[0]->getNumberOfDimensions();
     double nabla2 = 4*m_parameters[0]*m_parameters[0]*r2 - 2*n*m_parameters[0];
 
-    std::cout << nabla2 << std::endl;
+    return nabla2;
     // This line always closes a multiline comment */
-    //*
-    //double nabla2 = 0, phi, phi_plus, phi_minus;
-    double phi, phi_plus, phi_minus;
-    nabla2 = 0;
-    const double dx = 1e-5, dx2_1 = 1e10; // dx2_1 = 1/(dx*dx)
+    
+    
+    
+    // /* Numerical calculation
+    double nabla2 = 0, phi, phi_plus, phi_minus;
+    // double phi, phi_plus, phi_minus;
+    // nabla2 = 0;
+    const double dx = 1e-5, dx2_1 = 1/(dx*dx); // dx2_1 = 1/(dx*dx)
     assert(abs(dx2_1 - 1/(dx*dx))<1);
     phi = evaluate(particles);
     for (unsigned int i = 0; i < particles.size(); i++){
@@ -74,8 +80,7 @@ double SimpleGaussian::computeDoubleDerivative(std::vector<std::unique_ptr<class
             nabla2 += (phi_plus + phi_minus - 2*phi)*dx2_1;
         }
     }
-    std::cout << nabla2 << std::endl << std::endl;
 
+    return nabla2/phi;
     // This line always closes a multiline comment */
-    return nabla2;
 }
