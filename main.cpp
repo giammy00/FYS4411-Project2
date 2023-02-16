@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <memory>
 #include <math.h>
@@ -61,57 +62,72 @@ std::unique_ptr<Sampler> runSimulation(
     // Return the results
     return sampler;
 }
-#define TIMEING
 int main() {
     // Seed for the random number generator
     // int seed = 2023;
 
-    unsigned int numberOfDimensions = 3;
+    // unsigned int numberOfDimensions = 3;
     unsigned int numberOfParticles = 1;
+    unsigned int numberOfParticlesArray[4]={1,10,100,500};
     unsigned int numberOfMetropolisSteps = (unsigned int) 1E6;
     unsigned int numberOfEquilibrationSteps = (unsigned int) 1E5;
+    bool file_initiated = false;
     double omega = 1.0; // Oscillator frequency.
     double a_ho = std::sqrt(1./omega); // Characteristic size of the Harmonic Oscillator
-    double alpha = 0.5; // Variational parameter.
+    // double alpha = 0.5; // Variational parameter.
     double stepLength = 0.5; // Metropolis step length.
     stepLength *= a_ho; // Scale the steplength in case of changed omega
+    string filename = "output.txt";
 
+    #define TIMEING // Comment out turn off timing
     #ifdef TIMEING
     auto times = vector<int>();
     #endif
+    for (unsigned int numberOfDimensions = 1; numberOfDimensions < 4; numberOfDimensions++){
+        for (unsigned int i = 0; i < 4; i++){
+            numberOfParticles = numberOfParticlesArray[i];
+            for(double alpha = 0.2; alpha < 0.85; alpha += 0.1){
 
-    for(alpha = alpha; alpha < 1.75; alpha += 0.5){
-        #ifdef TIMEING
-        using std::chrono::high_resolution_clock;
-        using std::chrono::duration_cast;
-        using std::chrono::duration;
-        using std::chrono::milliseconds;
-        auto t1 = high_resolution_clock::now();
-        #endif
-        auto sampler = runSimulation(
-                numberOfDimensions,
-                numberOfParticles,
-                numberOfMetropolisSteps,
-                numberOfEquilibrationSteps,
-                omega,
-                a_ho,
-                alpha,
-                stepLength);
+                #ifdef TIMEING
+                using std::chrono::high_resolution_clock;
+                using std::chrono::duration_cast;
+                using std::chrono::duration;
+                using std::chrono::milliseconds;
+                auto t1 = high_resolution_clock::now();
+                #endif
 
-        #ifdef TIMEING
-        auto t2 = high_resolution_clock::now();
+                auto sampler = runSimulation(
+                        numberOfDimensions,
+                        numberOfParticles,
+                        numberOfMetropolisSteps,
+                        numberOfEquilibrationSteps,
+                        omega,
+                        a_ho,
+                        alpha,
+                        stepLength);
 
-        /* Getting number of milliseconds as an integer. */
-        auto ms_int = duration_cast<milliseconds>(t2 - t1);
-        times.push_back(ms_int.count());
-        #endif
-        // Output information from the simulation
-        sampler->printOutputToTerminalShort();//[ ]
+                #ifdef TIMEING
+                auto t2 = high_resolution_clock::now();
+                /* Getting number of milliseconds as an integer. */
+                auto ms_int = duration_cast<milliseconds>(t2 - t1);
+                times.push_back(ms_int.count());
+                #endif
+
+                if(!file_initiated){
+                    sampler->initiateFile(filename);
+                    file_initiated = true;
+                }
+                sampler->writeToFile(filename);
+                // Output information from the simulation
+                sampler->printOutputToTerminalShort();
+            }
+        }
     }
-
+    #ifdef TIMEING
     cout << "times : " << endl;
     for(unsigned int i = 0; i<times.size(); i++)
         cout << times[i] << endl;
+    #endif
 
     return 0;
 }

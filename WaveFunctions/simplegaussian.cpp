@@ -47,7 +47,7 @@ double SimpleGaussian::computeDoubleDerivative(std::vector<std::unique_ptr<class
     // The second derivative of exp(-alpha x*x) is exp(-alpha x*x)*(4*alpha*alpha*x*x - 2*alpha)
     
     
-    /* Analytical expression
+    // /* Analytical expression
     double r2 = 0;
     for (unsigned int i = 0; i < particles.size(); i++){
         std::vector<double> position = particles[i]->getPosition();
@@ -62,7 +62,7 @@ double SimpleGaussian::computeDoubleDerivative(std::vector<std::unique_ptr<class
     
     
     
-    // /* Numerical calculation
+    /* Numerical calculation
     double nabla2 = 0, phi, phi_plus, phi_minus;
     // double phi, phi_plus, phi_minus;
     // nabla2 = 0;

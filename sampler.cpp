@@ -1,7 +1,9 @@
 #include <memory>
 #include <iostream>
+#include <fstream>
 #include <cmath>
 #include <vector>
+#include <string>
 #include "system.h"
 #include "sampler.h"
 #include "particle.h"
@@ -14,8 +16,8 @@ using std::endl;
 
 Sampler::Sampler(
         unsigned int numberOfParticles,
-        unsigned int numberOfDimensions,
-        double stepLength)
+        unsigned int numberOfDimensions
+        )
 {
     m_numberOfParticles = numberOfParticles;
     m_numberOfDimensions = numberOfDimensions;
@@ -91,4 +93,31 @@ void Sampler::computeAverages() {
      */
     m_energy = m_cumulativeEnergy / m_stepNumber;
     m_energy2 = m_cumulativeEnergy2 / m_stepNumber;
+}
+
+
+void Sampler::initiateFile(std::string filename){
+    std::ofstream file (filename, std::ofstream::app);
+    file << "#n_particles" << '\t'
+        << "n_dimensions" << '\t'
+        << "n_steps" << '\t'
+        << "n_accepted_steps" << '\t'
+        << "E" << '\t'
+        << "var" << '\t'
+        << "params" << endl;
+    file.close();
+}
+
+void Sampler::writeToFile(std::string filename){
+    std::ofstream file (filename, std::ofstream::app);
+    file << m_numberOfParticles << '\t'
+        << m_numberOfDimensions << '\t'
+        << m_stepNumber << '\t'
+        << m_numberOfAcceptedSteps << '\t'
+        << m_energy << '\t'
+        << m_energy2 - m_energy * m_energy;
+    for (unsigned int i = 0; i < m_waveFunctionParameters.size(); i++)
+        file << '\t' << m_waveFunctionParameters[i];
+    file << endl;
+    file.close();
 }

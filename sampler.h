@@ -1,12 +1,13 @@
 #pragma once
 #include <memory>
+#include <string>
+#include <iostream>
 
 class Sampler {
 public:
     Sampler(
         unsigned int numberOfParticles,
-        unsigned int numberOfDimensions,
-        double stepLength
+        unsigned int numberOfDimensions
         );
 
 
@@ -17,6 +18,9 @@ public:
     void printOutputToTerminalShort();
     void computeAverages();
     double getEnergy() { return m_energy; }
+
+    void initiateFile(std::string filename);
+    void writeToFile(std::string filename);
 
 private:
     unsigned int m_stepNumber = 0;

@@ -32,8 +32,8 @@ std::unique_ptr<class Sampler> System::runEquilibrationSteps(
 {
     auto sampler = std::make_unique<Sampler>(
             m_numberOfParticles,
-            m_numberOfDimensions,
-            stepLength);
+            m_numberOfDimensions
+            );
 
     for (unsigned int i = 0; i < numberOfEquilibrationSteps; i++) {
         sampler->equilibrationSample(m_solver->step(stepLength, *m_waveFunction, m_particles));
