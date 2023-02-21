@@ -10,7 +10,7 @@
 #include "WaveFunctions/simplegaussian.h"
 #include "Hamiltonians/harmonicoscillator.h"
 #include "InitialStates/initialstate.h"
-#include "Solvers/metropolis.h"
+#include "Solvers/metropolisHastings.h"
 #include "Math/random.h"
 #include "particle.h"
 #include "sampler.h"
@@ -44,7 +44,7 @@ std::unique_ptr<Sampler> runSimulation(
             // Construct unique_ptr to wave function
             std::make_unique<SimpleGaussian>(alpha),//[x]
             // Construct unique_ptr to solver, and move rng
-            std::make_unique<Metropolis>(std::move(rng)),//[x]
+            std::make_unique<MetropolisHastings>(std::move(rng)),//[x]
             // Move the vector of particles to system
             std::move(particles));
 
@@ -68,23 +68,23 @@ int main() {
 
     // unsigned int numberOfDimensions = 3;
     unsigned int numberOfParticles = 1;
-    unsigned int numberOfParticlesArray[4]={1,10,100,500};
+    auto numberOfParticlesArray=std::vector<unsigned int>{1,10};//,100,500};
     unsigned int numberOfMetropolisSteps = (unsigned int) 1E6;
     unsigned int numberOfEquilibrationSteps = (unsigned int) 1E5;
     bool file_initiated = false;
     double omega = 1.0; // Oscillator frequency.
     double a_ho = std::sqrt(1./omega); // Characteristic size of the Harmonic Oscillator
     // double alpha = 0.5; // Variational parameter.
-    double stepLength = 0.5; // Metropolis step length.
+    double stepLength = 3E-4; // Metropolis step length.
     stepLength *= a_ho; // Scale the steplength in case of changed omega
-    string filename = "output.txt";
+    string filename = "Outputs/output.txt";
 
     #define TIMEING // Comment out turn off timing
     #ifdef TIMEING
     auto times = vector<int>();
     #endif
-    for (unsigned int numberOfDimensions = 1; numberOfDimensions < 4; numberOfDimensions++){
-        for (unsigned int i = 0; i < 4; i++){
+    for (unsigned int numberOfDimensions = 3; numberOfDimensions < 4; numberOfDimensions++){
+        for (unsigned int i = 0; i < numberOfParticlesArray.size(); i++){
             numberOfParticles = numberOfParticlesArray[i];
             for(double alpha = 0.2; alpha < 0.85; alpha += 0.1){
 

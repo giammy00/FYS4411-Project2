@@ -9,6 +9,7 @@ public:
         unsigned int numberOfParticles,
         unsigned int numberOfDimensions
         );
+    // Sampler(std::vector<Sampler> samplers);
 
 
     void sample(bool acceptedStep, class System* system);

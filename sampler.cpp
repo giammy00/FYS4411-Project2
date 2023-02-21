@@ -115,7 +115,7 @@ void Sampler::writeToFile(std::string filename){
         << m_stepNumber << '\t'
         << m_numberOfAcceptedSteps << '\t'
         << m_energy << '\t'
-        << m_energy2 - m_energy * m_energy;
+        << m_energy2 - m_energy * m_energy; // variance
     for (unsigned int i = 0; i < m_waveFunctionParameters.size(); i++)
         file << '\t' << m_waveFunctionParameters[i];
     file << endl;
