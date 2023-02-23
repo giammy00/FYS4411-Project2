@@ -7,7 +7,7 @@
 #include "../system.h"
 #include "../particle.h"
 
-// #include <iostream>
+#include <iostream>
 
 SimpleGaussian::SimpleGaussian(double alpha)
 {
@@ -91,8 +91,9 @@ std::vector<double> SimpleGaussian::quantumForce(std::vector<std::unique_ptr<cla
 
     auto pos = particles[index]->getPosition();
     auto force = std::vector<double>(pos);
-    for (unsigned int i; i<force.size(); i++)
+    for (unsigned int i=0; i<force.size(); i++){
         force[i] *= -2*m_parameters[0];
+    }
     return force;
 }
 
@@ -101,18 +102,19 @@ std::vector<double> SimpleGaussian::quantumForceMoved(std::vector<std::unique_pt
 
     auto pos = particles[index]->getPosition();
     auto force = std::vector<double>(pos);
-    for (unsigned int i; i<force.size(); i++){
+    for (unsigned int i=0; i<force.size(); i++){
         force[i] += step[i];
         force[i] *= -2*m_parameters[0];
     }
     return force;
 }
 
-double SimpleGaussian::partialHastingsArticle(std::vector<std::unique_ptr<class Particle>>& particles, int index, std::vector<double>& step){
+double SimpleGaussian::phiRatio(std::vector<std::unique_ptr<class Particle>>& particles, int index, std::vector<double>& step){
     // Calculate (phi(new)/phi(old))**2
     auto pos = particles[index]->getPosition();
     double dr2=0;
     for (unsigned int i=0; i<step.size(); i++)
-        dr2 += (2*pos[i]+step[i])*step[i]; // (pos[i]+step[i])*(pos[i]+step[i])-pos[i]*pos[i]
-    return exp(2*dr2);
+        // dr2 += (2*pos[i]+step[i])*step[i]; // (pos[i]+step[i])*(pos[i]+step[i])-pos[i]*pos[i]
+        dr2 += (pos[i]+step[i])*(pos[i]+step[i])-pos[i]*pos[i];
+    return exp(-2*m_parameters[0]*dr2);
 }

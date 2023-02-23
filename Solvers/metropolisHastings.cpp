@@ -24,31 +24,31 @@ bool MetropolisHastings::step(
     double temp;
     double sqrtdt = sqrt(dt);
     int index = m_rng->nextInt(0,particles.size()-1);
-    auto step = waveFunction.quantumForce(particles, index);
+    auto force = waveFunction.quantumForce(particles, index);
     auto noise = std::vector<double>();
-    for(unsigned int i=0; i<step.size(); i++){
-        noise.push_back(m_rng->nextGaussian(0,sqrtdt));
-        step[i] = step[i]*dt*0.5 + noise[i];
+    auto step = std::vector<double>();
+    for(unsigned int i=0; i<force.size(); i++){
+        noise.push_back(m_rng->nextGaussian(0,1)*sqrtdt);
+        step.push_back(force[i]*dt*0.5 + noise[i]);
     }
+    auto forceY = waveFunction.quantumForceMoved(particles, index, step);
     
-    double hastingsArticle = waveFunction.partialHastingsArticle(particles, index, step);
 
     // argument of the greensfunction exponent: -(y-x-D*dt*F(x))^2 / 4*D*dt
-    // difference: (-(y-x-D*dt*F(x))^2+(x-y-D*dt*F(y))^2) / 4*D*dt
-    // difference: (-(step-D*dt*F(x))^2+(-step-D*dt*F(y))^2) / 4*D*dt
-    // difference: (-(noise)^2+(-step-D*dt*F(y))^2) / 4*D*dt
-    // difference: (-(noise)^2+(step+D*dt*F(y))^2) / 4*D*dt
-    
+    // difference: (+(y-x-D*dt*F(x))^2-(x-y-D*dt*F(y))^2) / 4*D*dt
+    // difference: (+(step-D*dt*F(x))^2-(-step-D*dt*F(y))^2) / 4*D*dt
+    // difference: (+(noise)^2-(-step-D*dt*F(y))^2) / 4*D*dt
+    // difference: (+(noise)^2-(step+D*dt*F(y))^2) / 4*D*dt
+
     double greensDiff = 0;
     for (unsigned int i=0; i<noise.size(); i++)
-        greensDiff -= noise[i]*noise[i];
-    auto ForceY = waveFunction.quantumForceMoved(particles, index, step);
+        greensDiff += noise[i]*noise[i];
     for(unsigned int i=0; i<step.size(); i++){
-        temp = ForceY[i]*dt*0.5 + step[i];
-        greensDiff += temp*temp;
+        temp = step[i] + forceY[i]*dt*0.5;
+        greensDiff -= temp*temp;
     }
 
-    hastingsArticle *= exp(greensDiff/(2*dt));
+    double hastingsArticle = waveFunction.phiRatio(particles, index, step) * exp(greensDiff/(2*dt));
 
     if(m_rng->nextDouble()<(hastingsArticle)){
         particles[index]->adjustPosition(step);

@@ -10,6 +10,7 @@
 #include "WaveFunctions/simplegaussian.h"
 #include "Hamiltonians/harmonicoscillator.h"
 #include "InitialStates/initialstate.h"
+#include "Solvers/metropolis.h"
 #include "Solvers/metropolisHastings.h"
 #include "Math/random.h"
 #include "particle.h"
@@ -45,6 +46,7 @@ std::unique_ptr<Sampler> runSimulation(
             std::make_unique<SimpleGaussian>(alpha),//[x]
             // Construct unique_ptr to solver, and move rng
             std::make_unique<MetropolisHastings>(std::move(rng)),//[x]
+            // std::make_unique<Metropolis>(std::move(rng)),//[x]
             // Move the vector of particles to system
             std::move(particles));
 
@@ -75,7 +77,7 @@ int main() {
     double omega = 1.0; // Oscillator frequency.
     double a_ho = std::sqrt(1./omega); // Characteristic size of the Harmonic Oscillator
     // double alpha = 0.5; // Variational parameter.
-    double stepLength = 3E-4; // Metropolis step length.
+    double stepLength = 5E-2; // Metropolis step length.
     stepLength *= a_ho; // Scale the steplength in case of changed omega
     string filename = "Outputs/output.txt";
 
