@@ -7,8 +7,8 @@ mkdir build
 cd build
 
 # Run CMake to create a Makefile
-# cmake ../ -DCMAKE_BUILD_TYPE=Release
-cmake ../
+cmake ../ -DCMAKE_BUILD_TYPE=Release
+# cmake ../
 
 # Make the Makefile using two threads
 make -j2

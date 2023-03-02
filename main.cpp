@@ -37,7 +37,7 @@ std::unique_ptr<Sampler> runSimulation(
     // The random engine can also be built without a seed
     auto rng = std::make_unique<Random>(seed);
     // Initialize particles
-    auto particles = setupRandomUniformInitialState(numberOfDimensions, numberOfParticles, *rng, a_ho);//[x]
+    auto particles = setupRandomGaussianInitialState(numberOfDimensions, numberOfParticles, *rng, a_ho);//[x]
     // Construct a unique pointer to a new System
     auto system = std::make_unique<System>(//[x]
             // Construct unique_ptr to Hamiltonian

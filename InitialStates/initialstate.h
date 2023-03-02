@@ -13,3 +13,10 @@ std::vector<std::unique_ptr<Particle>> setupRandomUniformInitialState(
             Random& randomEngine,
             double lengthScale
             );
+
+std::vector<std::unique_ptr<Particle>> setupRandomGaussianInitialState(
+            unsigned int numberOfDimensions,
+            unsigned int numberOfParticles,
+            Random& randomEngine,
+            double lengthScale
+            );
