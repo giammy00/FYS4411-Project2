@@ -70,10 +70,9 @@ int main() {
 
     // unsigned int numberOfDimensions = 3;
     unsigned int numberOfParticles = 1;
-    auto numberOfParticlesArray=std::vector<unsigned int>{1,10};//,100,500};
+    auto numberOfParticlesArray=std::vector<unsigned int>{1,10,100,500};
     unsigned int numberOfMetropolisSteps = (unsigned int) 1E6;
     unsigned int numberOfEquilibrationSteps = (unsigned int) 1E5;
-    bool file_initiated = false;
     double omega = 1.0; // Oscillator frequency.
     double a_ho = std::sqrt(1./omega); // Characteristic size of the Harmonic Oscillator
     // double alpha = 0.5; // Variational parameter.
@@ -81,11 +80,21 @@ int main() {
     stepLength *= a_ho; // Scale the steplength in case of changed omega
     string filename = "Outputs/output.txt";
 
+    //check if file already exists, if so, set file_initiated to true (avoid printing header line over and over in outputs.txt)
+    //just to handle the .txt easier to handle.
+    bool file_initiated;
+    if( FILE * fptr  = fopen(filename.c_str(),"r") ){
+        fclose(fptr);
+        file_initiated = true;
+    }
+    else
+        file_initiated = false;
+
     #define TIMEING // Comment out turn off timing
     #ifdef TIMEING
     auto times = vector<int>();
     #endif
-    for (unsigned int numberOfDimensions = 3; numberOfDimensions < 4; numberOfDimensions++){
+    for (unsigned int numberOfDimensions = 1; numberOfDimensions < 4; numberOfDimensions++){
         for (unsigned int i = 0; i < numberOfParticlesArray.size(); i++){
             numberOfParticles = numberOfParticlesArray[i];
             for(double alpha = 0.2; alpha < 0.85; alpha += 0.1){
