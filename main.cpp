@@ -61,7 +61,11 @@ std::unique_ptr<Sampler> runSimulation(
             stepLength,
             numberOfMetropolisSteps);
 
-    // Return the results
+    //here the system should call wavefunction's function "compute gradient (or similar)", giving as inputs the relevant quantities contained in the sampler.
+    //note the sampler has already computed the averages at the end of call to runMetropolisSteps(). need to code something like:
+    //system->waveFunction.computeGradient( sampler.RelevantParameters )
+    //then the alpha and beta should be updated using gradient descent and system->runMetropolisSteps should be called again (no need to re-equilibrate)
+    //(consider doing the loop over alphas here instead of main???)
     return sampler;
 }
 int main() {
@@ -97,6 +101,7 @@ int main() {
     for (unsigned int numberOfDimensions = 1; numberOfDimensions < 4; numberOfDimensions++){
         for (unsigned int i = 0; i < numberOfParticlesArray.size(); i++){
             numberOfParticles = numberOfParticlesArray[i];
+            //while ( convergence criterion not met )
             for(double alpha = 0.2; alpha < 0.85; alpha += 0.1){
 
                 #ifdef TIMEING
@@ -116,7 +121,10 @@ int main() {
                         a_ho,
                         alpha,
                         stepLength);
-
+                
+                //implement in sampler the various cumulative avgs which need to be computed
+                //which averages to compute?? depends on wavefunction, so gradient function which combines the averages 
+                //and returns gradient should be member of the wavefunction
                 #ifdef TIMEING
                 auto t2 = high_resolution_clock::now();
                 /* Getting number of milliseconds as an integer. */

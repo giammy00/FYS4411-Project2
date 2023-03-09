@@ -37,6 +37,10 @@ void Sampler::sample(bool acceptedStep, System* system) {
     m_cumulativeEnergy2 += localEnergy * localEnergy;
     m_stepNumber++;
     m_numberOfAcceptedSteps += acceptedStep;
+
+    //HERE WE NEED TO CARE ABOUT **WHICH** QUANTITIES TO SAMPLE 
+    //In fact, they  dependon the wavefunction used.
+    //system->waveFunction.computeGradientTerms()
 }
 
 void Sampler::transferWaveFunctionParameters(std::vector<double> parameters){
@@ -93,6 +97,8 @@ void Sampler::computeAverages() {
      */
     m_energy = m_cumulativeEnergy / m_stepNumber;
     m_energy2 = m_cumulativeEnergy2 / m_stepNumber;
+
+    //add stuff here to update other sampled quantities for gradient
 }
 
 

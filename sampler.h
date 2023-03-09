@@ -34,5 +34,6 @@ private:
     double m_cumulativeEnergy = 0;
     double m_energy2 = 0;
     double m_cumulativeEnergy2 = 0;
+    
     std::vector<double> m_waveFunctionParameters;
 };
