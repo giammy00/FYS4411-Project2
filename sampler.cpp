@@ -42,6 +42,7 @@ void Sampler::sample(bool acceptedStep, System* system) {
     std::vector<std::vector<double>>currentGradientTerms =  computeGradientTerms( currentDerivatives, localEnergy);
 
     //now currentGradientTerms is a matrix, different rows correspond to different parameters
+    //update each of the rowas adding current sampled quantity
     for(unsigned int i=0; i<currentGradientTerms.size();i++){
         for(unsigned int j=0; j<2;j++){
             m_cumulativeGradientTerms[i][j]+=currentGradientTerms[i][j];
@@ -154,4 +155,17 @@ std::vector<std::vector<double>> computeGradientTerms( std::vector<double> dPhi_
         gradTerms[i][1] = dPhi_dParams[i]*Elocal;
     }
     return gradTerms;
+}
+
+//gradient of the trial energy
+std::vector<double> Sampler::computeGradientEtrial()
+{
+int N = m_gradientTerms.size();
+std::vector<double> gradient = std::vector<double>(N); 
+    for(int i=0; i<N; i++){
+        for(int j=0; j<2; j++){
+            gradient[i] = 2*(m_gradientTerms[i][1]-m_energy*m_gradientTerms[i][0]);
+        }
+    }
+return gradient ; 
 }

@@ -39,6 +39,8 @@ private:
     std::vector<std::vector<double>> m_cumulativeGradientTerms;
     //averaged quantities to compute gradient
     std::vector<std::vector<double>> m_gradientTerms;
+    //compute the gradient of the trial energy wrt variational parameters
+    std::vector<double> computeGradientEtrial();
     std::vector<double> m_waveFunctionParameters;
 
 };

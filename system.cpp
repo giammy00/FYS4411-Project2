@@ -81,12 +81,20 @@ const std::vector<double>& System::getWaveFunctionParameters()
 //Return sampled quantities for computation of gradient
 std::vector<double> System::getdPhi_dParams()
 {
+    // Helper function
     return m_waveFunction->getdPhi_dParams();
 }
 
 //compute gradient of local energy wrt a variational parameter
 //nb: avgGradientTerms must contain  MC estimates of <dLogPsi/d(parameter)> AND <dLogPsi/d(parameter)*LocalEnergy>
-double System::computeDerivative( double avgElocal, std::vector<double> avgGradientTerms)
+std::vector<double> System::computeGradientEtrial( double avgElocal, std::vector<std::vector<double>> avgGradientTerms)
 {
-    return 2*(avgGradientTerms[1]-avgElocal*avgGradientTerms[0]);
+int N = avgGradientTerms.size();
+std::vector<double> gradient = std::vector<double>(N); 
+    for(int i=0; i<N; i++){
+        for(int j=0; j<2; j++){
+            gradient[i] = 2*(avgGradientTerms[i][1]-avgElocal*avgGradientTerms[i][0]);
+        }
+    }
+return gradient ; 
 }

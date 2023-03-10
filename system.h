@@ -24,7 +24,8 @@ public:
     double computeLocalEnergy();
     const std::vector<double>& getWaveFunctionParameters();
     std::vector<double> getdPhi_dParams();
-    double computeDerivative( double avgElocal, std::vector<double> gradientTerms);
+    //compute the gradient of the trial energy wrt variational parameters
+    std::vector<double> computeGradientEtrial( double avgElocal, std::vector<std::vector<double>> gradientTerms);
 private:
     unsigned int m_numberOfParticles = 0;
     unsigned int m_numberOfDimensions = 0;
