@@ -8,6 +8,7 @@
 
 #include "system.h"
 #include "WaveFunctions/simplegaussian.h"
+#include "WaveFunctions/interactinggaussian.h"
 #include "Hamiltonians/harmonicoscillator.h"
 #include "InitialStates/initialstate.h"
 #include "Solvers/metropolis.h"
@@ -43,10 +44,11 @@ std::unique_ptr<Sampler> runSimulation(
             // Construct unique_ptr to Hamiltonian
             std::make_unique<HarmonicOscillator>(omega),
             // Construct unique_ptr to wave function
-            std::make_unique<SimpleGaussian>(alpha),
+            // std::make_unique<SimpleGaussian>(alpha),
+            std::make_unique<InteractingGaussian>(alpha),
             // Construct unique_ptr to solver, and move rng
-            std::make_unique<MetropolisHastings>(std::move(rng)),
-            // std::make_unique<Metropolis>(std::move(rng)),
+            // std::make_unique<MetropolisHastings>(std::move(rng)),
+            std::make_unique<Metropolis>(std::move(rng)),
             // Move the vector of particles to system
             std::move(particles));
 
@@ -70,13 +72,13 @@ int main() {
 
     // unsigned int numberOfDimensions = 3;
     unsigned int numberOfParticles = 1;
-    auto numberOfParticlesArray=std::vector<unsigned int>{1,10,100,500};
-    unsigned int numberOfMetropolisSteps = (unsigned int) 1E6;
-    unsigned int numberOfEquilibrationSteps = (unsigned int) 1E5;
+    auto numberOfParticlesArray=std::vector<unsigned int>{2};//,10,100,500};
+    unsigned int numberOfMetropolisSteps = (unsigned int) 10;
+    unsigned int numberOfEquilibrationSteps = (unsigned int) 0;
     double omega = 1.0; // Oscillator frequency.
     double a_ho = std::sqrt(1./omega); // Characteristic size of the Harmonic Oscillator
     // double alpha = 0.5; // Variational parameter.
-    double stepLength = 5E-2; // Metropolis step length.
+    double stepLength = 5E-1; // Metropolis step length.
     stepLength *= a_ho; // Scale the steplength in case of changed omega
     string filename = "Outputs/output.txt";
 
@@ -94,10 +96,10 @@ int main() {
     #ifdef TIMEING
     auto times = vector<int>();
     #endif
-    for (unsigned int numberOfDimensions = 1; numberOfDimensions < 4; numberOfDimensions++){
+    for (unsigned int numberOfDimensions = 3; numberOfDimensions < 4; numberOfDimensions++){
         for (unsigned int i = 0; i < numberOfParticlesArray.size(); i++){
             numberOfParticles = numberOfParticlesArray[i];
-            for(double alpha = 0.2; alpha < 0.85; alpha += 0.1){
+            for(double alpha = 0.6; alpha < 0.85; alpha += 10.1){
 
                 #ifdef TIMEING
                 using std::chrono::high_resolution_clock;
