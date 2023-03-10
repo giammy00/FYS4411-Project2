@@ -16,11 +16,13 @@ using std::endl;
 
 Sampler::Sampler(
         unsigned int numberOfParticles,
-        unsigned int numberOfDimensions
+        unsigned int numberOfDimensions,
+        int numberOfWFParams
         )
 {
     m_numberOfParticles = numberOfParticles;
     m_numberOfDimensions = numberOfDimensions;
+    m_cumulativeGradientTerms = std::vector<double>(numberOfWFParams*2, 0.0);
 }
 
 void Sampler::equilibrationSample(bool acceptedStep){
@@ -35,12 +37,15 @@ void Sampler::sample(bool acceptedStep, System* system) {
     auto localEnergy = system->computeLocalEnergy();
     m_cumulativeEnergy  += localEnergy;
     m_cumulativeEnergy2 += localEnergy * localEnergy;
+
+    //sample quantities for gradient computation
+    std::vector<double> currentGradientTerms =  system->getGradientTerms(localEnergy);
+    for(unsigned int i=0; i<currentGradientTerms.size();i++){
+        m_cumulativeGradientTerms[i]+=currentGradientTerms[i];
+    }
     m_stepNumber++;
     m_numberOfAcceptedSteps += acceptedStep;
 
-    //HERE WE NEED TO CARE ABOUT **WHICH** QUANTITIES TO SAMPLE 
-    //In fact, they  dependon the wavefunction used.
-    //system->waveFunction.computeGradientTerms()
 }
 
 void Sampler::transferWaveFunctionParameters(std::vector<double> parameters){
@@ -98,7 +103,10 @@ void Sampler::computeAverages() {
     m_energy = m_cumulativeEnergy / m_stepNumber;
     m_energy2 = m_cumulativeEnergy2 / m_stepNumber;
 
-    //add stuff here to update other sampled quantities for gradient
+    //update other sampled quantities for gradient
+    for(unsigned int i=0; i<m_cumulativeGradientTerms.size();i++){
+        m_gradientTerms[i]=m_cumulativeGradientTerms[i]/m_stepNumber;
+    }
 }
 
 

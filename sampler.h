@@ -7,7 +7,8 @@ class Sampler {
 public:
     Sampler(
         unsigned int numberOfParticles,
-        unsigned int numberOfDimensions
+        unsigned int numberOfDimensions,
+        int numberOfWFParams
         );
     // Sampler(std::vector<Sampler> samplers);
 
@@ -34,6 +35,10 @@ private:
     double m_cumulativeEnergy = 0;
     double m_energy2 = 0;
     double m_cumulativeEnergy2 = 0;
-    
+    //sampled quantities for computing gradient.
+    //for the h.o. we only need one double, might need to be changed to std::vector<double> if more than one quantity needs sampling.
+    std::vector<double> m_cumulativeGradientTerms;
+    std::vector<double> m_gradientTerms;
     std::vector<double> m_waveFunctionParameters;
+
 };

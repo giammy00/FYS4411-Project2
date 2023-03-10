@@ -32,12 +32,12 @@ std::unique_ptr<class Sampler> System::runEquilibrationSteps(
 {
     auto sampler = std::make_unique<Sampler>(
             m_numberOfParticles,
-            m_numberOfDimensions
+            m_numberOfDimensions, 
+            m_waveFunction->getNumberOfParameters()
             );
 
     for (unsigned int i = 0; i < numberOfEquilibrationSteps; i++) {
         sampler->equilibrationSample(m_solver->step(stepLength, *m_waveFunction, m_particles));
-
     }
 
     return sampler;
@@ -75,4 +75,11 @@ const std::vector<double>& System::getWaveFunctionParameters()
 {
     // Helper function
     return m_waveFunction->getParameters();
+}
+
+
+//Return sampled quantities for computation of gradient
+std::vector<double> System::getGradientTerms(double Elocal)
+{
+    return m_waveFunction->getGradientTerms(Elocal);
 }

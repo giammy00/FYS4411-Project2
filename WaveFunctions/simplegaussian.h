@@ -13,6 +13,6 @@ public:
     std::vector<double> quantumForce(std::vector<std::unique_ptr<class Particle>>& particles, int index);
     std::vector<double> quantumForceMoved(std::vector<std::unique_ptr<class Particle>>& particles, int index, std::vector<double>& step);
     double phiRatio(std::vector<std::unique_ptr<class Particle>>& particles, int index, std::vector<double>& step);
-    double SimpleGaussian::dLogPsiDAlpha(std::vector<std::unique_ptr<class Particle>>& particles);
-    void SimpleGaussian::updateVariables(std::vector<std::unique_ptr<class Particle>>& particles,  std::vector<double>& step);
+    std::vector<double> SimpleGaussian::getGradientTerms( double localenergy );
+    void SimpleGaussian::updateCachedVariables(std::vector<std::unique_ptr<class Particle>>& particles,  std::vector<double>& step);
 };

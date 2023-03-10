@@ -23,7 +23,7 @@ public:
 
     double computeLocalEnergy();
     const std::vector<double>& getWaveFunctionParameters();
-
+    std::vector<double> getGradientTerms( double Elocal );
 private:
     unsigned int m_numberOfParticles = 0;
     unsigned int m_numberOfDimensions = 0;

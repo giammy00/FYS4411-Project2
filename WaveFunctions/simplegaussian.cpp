@@ -127,14 +127,15 @@ double SimpleGaussian::phiRatio(std::vector<std::unique_ptr<class Particle>>& pa
     return exp(-2*m_parameters[0]*dr2);
 }
 
+std::vector<double> SimpleGaussian::getGradientTerms( double Elocal ){
+    // get the term necessary to the computation of cumulative gradient i.e. (1/psi)(d/d\alpha)psi = (d/dalpha)log(psi)
+    double dLogPhi_dAlpha = -r2;
+    double dLogPhiEL = dLogPhi_dAlpha*Elocal;
+    std::vector<double> gradTerms = std::vector<double>{dLogPhi_dAlpha, dLogPhiEL};
+    return gradTerms;
+    }
 
-double SimpleGaussian::dLogPsiDAlpha(std::vector<std::unique_ptr<class Particle>>& particles){
-    // compute (1/psi)(d/d\alpha)psi = (d/dalpha)log(psi)
-    return -r2;
-
-}
-
-void SimpleGaussian::updateVariables(std::vector<std::unique_ptr<class Particle>>& particles, std::vector<double>& step){
+void SimpleGaussian::updateCachedVariables(std::vector<std::unique_ptr<class Particle>>& particles, std::vector<double>& step){
     //this function helps updating some stored quantities which come up again and again in various computations, to spare computational costs.
     //in the case of harmonic oscillator the only quantity is: r2=sum_i^Nparticles ( r_i^2 )
     //which changes by 2*step*(1+step), when we move EXACTLY one particle by a quantity step (regardless of which particle it is)
