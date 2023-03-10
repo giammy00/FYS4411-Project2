@@ -130,8 +130,8 @@ double SimpleGaussian::phiRatio(std::vector<std::unique_ptr<class Particle>>& pa
 std::vector<double> SimpleGaussian::getGradientTerms( double Elocal ){
     // get the term necessary to the computation of cumulative gradient i.e. (1/psi)(d/d\alpha)psi = (d/dalpha)log(psi)
     double dLogPhi_dAlpha = -r2;
-    double dLogPhiEL = dLogPhi_dAlpha*Elocal;
-    std::vector<double> gradTerms = std::vector<double>{dLogPhi_dAlpha, dLogPhiEL};
+    double dLogPhiTimesEL = dLogPhi_dAlpha*Elocal;
+    std::vector<double> gradTerms = std::vector<double>{dLogPhi_dAlpha, dLogPhiTimesEL};
     return gradTerms;
     }
 

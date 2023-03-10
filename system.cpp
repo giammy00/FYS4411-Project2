@@ -83,3 +83,10 @@ std::vector<double> System::getGradientTerms(double Elocal)
 {
     return m_waveFunction->getGradientTerms(Elocal);
 }
+
+//compute gradient of local energy wrt a variational parameter
+//nb: avgGradientTerms must contain  MC estimates of <dLogPsi/d(parameter)> AND <dLogPsi/d(parameter)*LocalEnergy>
+double System::computeDerivative( double avgElocal, std::vector<double> avgGradientTerms)
+{
+    return 2*(avgGradientTerms[1]-avgElocal*avgGradientTerms[0]);
+}
