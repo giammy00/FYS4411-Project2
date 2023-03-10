@@ -35,10 +35,10 @@ private:
     double m_cumulativeEnergy = 0;
     double m_energy2 = 0;
     double m_cumulativeEnergy2 = 0;
-    //sampled quantities for computing gradient.
-    //for the h.o. we only need one double, might need to be changed to std::vector<double> if more than one quantity needs sampling.
-    std::vector<double> m_cumulativeGradientTerms;
-    std::vector<double> m_gradientTerms;
+    //sampled cumulative quantities for computing gradient.
+    std::vector<std::vector<double>> m_cumulativeGradientTerms;
+    //averaged quantities to compute gradient
+    std::vector<std::vector<double>> m_gradientTerms;
     std::vector<double> m_waveFunctionParameters;
 
 };

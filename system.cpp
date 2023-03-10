@@ -79,9 +79,9 @@ const std::vector<double>& System::getWaveFunctionParameters()
 
 
 //Return sampled quantities for computation of gradient
-std::vector<double> System::getGradientTerms(double Elocal)
+std::vector<double> System::getdPhi_dParams()
 {
-    return m_waveFunction->getGradientTerms(Elocal);
+    return m_waveFunction->getdPhi_dParams();
 }
 
 //compute gradient of local energy wrt a variational parameter

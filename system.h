@@ -23,7 +23,8 @@ public:
 
     double computeLocalEnergy();
     const std::vector<double>& getWaveFunctionParameters();
-    std::vector<double> getGradientTerms( double Elocal );
+    std::vector<double> getdPhi_dParams();
+    double computeDerivative( double avgElocal, std::vector<double> gradientTerms);
 private:
     unsigned int m_numberOfParticles = 0;
     unsigned int m_numberOfDimensions = 0;

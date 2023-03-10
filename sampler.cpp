@@ -22,7 +22,7 @@ Sampler::Sampler(
 {
     m_numberOfParticles = numberOfParticles;
     m_numberOfDimensions = numberOfDimensions;
-    m_cumulativeGradientTerms = std::vector<double>(numberOfWFParams*2, 0.0);
+    m_cumulativeGradientTerms = std::vector<std::vector<double>>(numberOfWFParams, std::vector<double>(2, 0.0)) ;
 }
 
 void Sampler::equilibrationSample(bool acceptedStep){
@@ -31,17 +31,21 @@ void Sampler::equilibrationSample(bool acceptedStep){
 }
 
 void Sampler::sample(bool acceptedStep, System* system) {
-    /* Here you should sample all the interesting things you want to measure.
-     * Note that there are (way) more than the single one here currently.
+    /*sample all the interesting things 
      */
     auto localEnergy = system->computeLocalEnergy();
     m_cumulativeEnergy  += localEnergy;
     m_cumulativeEnergy2 += localEnergy * localEnergy;
 
     //sample quantities for gradient computation
-    std::vector<double> currentGradientTerms =  system->getGradientTerms(localEnergy);
+    std::vector<double> currentDerivatives =  system->getdPhi_dParams();
+    std::vector<std::vector<double>>currentGradientTerms =  computeGradientTerms( currentDerivatives, localEnergy);
+
+    //now currentGradientTerms is a matrix, different rows correspond to different parameters
     for(unsigned int i=0; i<currentGradientTerms.size();i++){
-        m_cumulativeGradientTerms[i]+=currentGradientTerms[i];
+        for(unsigned int j=0; j<2;j++){
+            m_cumulativeGradientTerms[i][j]+=currentGradientTerms[i][j];
+        }
     }
     m_stepNumber++;
     m_numberOfAcceptedSteps += acceptedStep;
@@ -104,8 +108,11 @@ void Sampler::computeAverages() {
     m_energy2 = m_cumulativeEnergy2 / m_stepNumber;
 
     //update other sampled quantities for gradient
+
     for(unsigned int i=0; i<m_cumulativeGradientTerms.size();i++){
-        m_gradientTerms[i]=m_cumulativeGradientTerms[i]/m_stepNumber;
+        for(unsigned int j=0; j<2;j++){
+        m_gradientTerms[i][j]=m_cumulativeGradientTerms[i][j]/m_stepNumber;
+        }
     }
 }
 
@@ -134,4 +141,17 @@ void Sampler::writeToFile(std::string filename){
         file << '\t' << m_waveFunctionParameters[i];
     file << endl;
     file.close();
+}
+
+std::vector<std::vector<double>> computeGradientTerms( std::vector<double> dPhi_dParams, double Elocal ){
+    ////*****NOTE : by dPhi_dParams we mean the gradient of log(wavefunc.) wrt the variational parameters
+    int N = dPhi_dParams.size();
+    std::vector<std::vector<double>> gradTerms(N, std::vector<double>(2));
+
+    //in every row of the matrix we have terms related to a different variational parameter
+    for( unsigned int i = 0 ; i<N; i++){
+        gradTerms[i][0] = dPhi_dParams[i];
+        gradTerms[i][1] = dPhi_dParams[i]*Elocal;
+    }
+    return gradTerms;
 }

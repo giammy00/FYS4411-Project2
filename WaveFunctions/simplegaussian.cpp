@@ -126,14 +126,9 @@ double SimpleGaussian::phiRatio(std::vector<std::unique_ptr<class Particle>>& pa
         dr2 += (pos[i]+step[i])*(pos[i]+step[i])-pos[i]*pos[i];
     return exp(-2*m_parameters[0]*dr2);
 }
-
-std::vector<double> SimpleGaussian::getGradientTerms( double Elocal ){
-    // get the term necessary to the computation of cumulative gradient i.e. (1/psi)(d/d\alpha)psi = (d/dalpha)log(psi)
-    double dLogPhi_dAlpha = -r2;
-    double dLogPhiTimesEL = dLogPhi_dAlpha*Elocal;
-    std::vector<double> gradTerms = std::vector<double>{dLogPhi_dAlpha, dLogPhiTimesEL};
-    return gradTerms;
-    }
+std::vector<double> SimpleGaussian::getdPhi_dParams(){
+    return std::vector<double>{-r2};
+}
 
 void SimpleGaussian::updateCachedVariables(std::vector<std::unique_ptr<class Particle>>& particles, std::vector<double>& step){
     //this function helps updating some stored quantities which come up again and again in various computations, to spare computational costs.
