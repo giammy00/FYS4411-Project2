@@ -19,6 +19,17 @@ InteractingGaussian::InteractingGaussian(double alpha, double beta, double a)
     m_parameters.push_back(a);
 }
 
+double InteractingGaussian::uPrime(double r){
+    // *************** Derivative of log(1.-(m_parameters[2]/r)) ***************
+    return m_parameters[2]/(r*(m_parameters[2]-r));
+}
+
+double InteractingGaussian::uDoublePrime(double r){
+    // *************** Derivative of log(1.-(m_parameters[2]/r)) ***************
+    return (m_parameters[2]*(m_parameters[2]-2*r))/(r*r*(m_parameters[2]-r)*(m_parameters[2]-r));
+    // return 1/(r*r)-1/((m_parameters[2]-r)*(m_parameters[2]-r));
+}
+
 double InteractingGaussian::evaluate(std::vector<std::unique_ptr<class Particle>>& particles) {
     /* You need to implement a Gaussian wave function here. The positions of
      * the particles are accessible through the particle[i]->getPosition()
@@ -100,11 +111,26 @@ double InteractingGaussian::computeDoubleDerivative(std::vector<std::unique_ptr<
 
 std::vector<double> InteractingGaussian::quantumForce(std::vector<std::unique_ptr<class Particle>>& particles, int index){
     //***************WE RETURN d/dx(phi)/phi NOT d/dx(phi)*********************
-
+    double r2, temp;
     auto pos = particles[index]->getPosition();
     auto force = std::vector<double>(pos);
     for (unsigned int i=0; i<force.size(); i++){
         force[i] *= -2*m_parameters[0];
+    }
+    for (unsigned int i = 0; i<particles.size(); i++){
+        if ((int)i == index) continue;
+        auto pos2 = particles[i]->getPosition();
+        auto relPos = std::vector<double>();
+        r2 = 0;
+        for (unsigned int k = 0; k<pos.size(); k++){
+            relPos.push_back(pos[k] - pos2[k]);
+            r2 += relPos[k]*relPos[k];
+        }
+        temp = sqrt(r2);
+        temp = uPrime(temp)/temp;
+        for (unsigned int k = 0; k<pos.size(); k++){
+            force[k] += relPos[k] * temp;
+        }
     }
     return force;
 }
