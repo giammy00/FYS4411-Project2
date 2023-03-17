@@ -15,6 +15,9 @@ void testDoubleDerivative(
     std::vector<std::unique_ptr<class Particle>>& particles,
     class WaveFunction& waveFunction,
     double nabla2);
+void slowEvaluate(std::vector<std::unique_ptr<class Particle>>& particles,
+    std::vector<std::vector<double>> distances,
+    std::vector<double> m_parameters, double phi_);
 
 InteractingGaussian::InteractingGaussian(double alpha, double beta, double a)
 {
@@ -34,12 +37,36 @@ void InteractingGaussian::InitialisePositions(std::vector<std::unique_ptr<class 
         auto temp = std::vector<double>();
         for (unsigned int j = 0; j<i; j++){
             auto pos2 = particles[j]->getPosition();
+            r2 = 0;
             for (unsigned int k = 0; k<pos.size(); k++){
                 r2 += (pos2[k] - pos[k])*(pos2[k] - pos[k]);
             }
             temp.push_back(sqrt(r2));
         }
         distances.push_back(temp);
+    }
+}
+
+void InteractingGaussian::adjustPosition(std::vector<std::unique_ptr<class Particle>>& particles, int index, std::vector<double> step){
+    double r2;
+    auto pos = particles[index]->getPosition();
+    for (unsigned int i = 0; i<pos.size(); i++)
+        pos[i] += step[i];
+    for (int j = 0; j<index; j++){
+        auto pos2 = particles[j]->getPosition();
+        r2 = 0;
+        for (unsigned int k = 0; k<pos.size(); k++){
+            r2 += (pos2[k] - pos[k])*(pos2[k] - pos[k]);
+        }
+        distances[index][j]=sqrt(r2);
+    }
+    for (unsigned int j = index+1; j<particles.size(); j++){
+        auto pos2 = particles[j]->getPosition();
+        r2 = 0;
+        for (unsigned int k = 0; k<pos.size(); k++){
+            r2 += (pos2[k] - pos[k])*(pos2[k] - pos[k]);
+        }
+        distances[j][index]=sqrt(r2);
     }
 }
 
@@ -68,6 +95,33 @@ double InteractingGaussian::evaluate(std::vector<std::unique_ptr<class Particle>
     }
     double phi = exp(-1*r2*m_parameters[0]);
     for (unsigned int i = 0; i < particles.size(); i++){
+        for (unsigned int j = i+1; j<particles.size(); j++){
+            phi *= std::max(1-m_parameters[2]/distances[j][i],0.);
+        }
+    }
+
+    // TESTING:
+    // slowEvaluate(particles, distances, m_parameters, phi);
+
+    return phi;
+}
+
+void slowEvaluate(std::vector<std::unique_ptr<class Particle>>& particles, std::vector<std::vector<double>> distances, std::vector<double> m_parameters, double phi_) {
+    /* You need to implement a Gaussian wave function here. The positions of
+     * the particles are accessible through the particle[i]->getPosition()
+     * function.
+     */
+    // Returns Phi, not Phi^2
+    double r2 = 0;
+    double diffSum=0;
+    int count=0;
+    for (unsigned int i = 0; i < particles.size(); i++){
+        std::vector<double> pos = particles[i]->getPosition();
+        for (unsigned int j = 0; j<pos.size(); j++)
+            r2 += pos[j]*pos[j];
+    }
+    double phi = exp(-1*r2*m_parameters[0]);
+    for (unsigned int i = 0; i < particles.size(); i++){
         std::vector<double> pos = particles[i]->getPosition();
         for (unsigned int j = i+1; j<particles.size(); j++){
             std::vector<double> pos2 = particles[j]->getPosition();
@@ -75,9 +129,13 @@ double InteractingGaussian::evaluate(std::vector<std::unique_ptr<class Particle>
             for (unsigned int k = 0; k<pos.size(); k++)
                 r2 += (pos[k]-pos2[k])*(pos[k]-pos2[k]);
             phi *= std::max(1-m_parameters[2]/sqrt(r2),0.);
+            count++;
+            diffSum += abs((sqrt(r2)-distances[j][i])/distances[j][i]);
+            // std::cout << sqrt(r2)-distances[j][i] << "\t";
         }
+        // std::cout << std::endl;
     }
-    return phi;
+    std::cout << "Rel phi diff: " << abs((phi-phi_)/phi) << "\t Avg relative r diff: " << diffSum/count << std::endl;
 }
 
 double InteractingGaussian::computeDoubleDerivative(std::vector<std::unique_ptr<class Particle>>& particles) {

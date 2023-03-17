@@ -44,8 +44,7 @@ std::unique_ptr<class Sampler> System::runEquilibrationSteps(
     }
 
     // TESTING
-    if (m_waveFunction->getNumberOfParameters() > 2)
-        testEquilibration(m_particles, m_waveFunction->getParameters()[2]);
+    // if (m_waveFunction->getNumberOfParameters() > 2) testEquilibration(m_particles, m_waveFunction->getParameters()[2]);
 
     return sampler;
 }

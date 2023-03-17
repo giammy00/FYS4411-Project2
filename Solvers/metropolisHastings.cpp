@@ -59,8 +59,10 @@ bool MetropolisHastings::step(
 
     // For testing:
     // testGradient(waveFunction, particles, force, index);
+    // waveFunction.evaluate(particles);
 
     if(m_rng->nextDouble()<(hastingsArticle)){
+        waveFunction.adjustPosition(particles, index, step);
         particles[index]->adjustPosition(step);
         // For testing:
         // cout << "Moved:" << endl;

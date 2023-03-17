@@ -21,6 +21,10 @@ void SimpleGaussian::InitialisePositions(std::vector<std::unique_ptr<class Parti
     ;
 }
 
+void SimpleGaussian::adjustPosition(std::vector<std::unique_ptr<class Particle>>& particles, int index, std::vector<double> step){
+    ;
+}
+
 double SimpleGaussian::evaluate(std::vector<std::unique_ptr<class Particle>>& particles) {
     /* You need to implement a Gaussian wave function here. The positions of
      * the particles are accessible through the particle[i]->getPosition()
