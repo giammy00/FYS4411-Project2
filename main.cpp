@@ -38,6 +38,7 @@ std::unique_ptr<Sampler> runSimulation(
     // The random engine can also be built without a seed
     auto rng = std::make_unique<Random>(seed);
     // Initialize particles
+    // auto particles = setupNonOverlappingGaussianInitialState(numberOfDimensions, numberOfParticles, *rng, a_ho);
     auto particles = setupRandomGaussianInitialState(numberOfDimensions, numberOfParticles, *rng, a_ho);
     // Construct a unique pointer to a new System
     auto system = std::make_unique<System>(
@@ -72,9 +73,9 @@ int main() {
 
     // unsigned int numberOfDimensions = 3;
     unsigned int numberOfParticles = 1;
-    auto numberOfParticlesArray=std::vector<unsigned int>{10};//,100,500};
-    unsigned int numberOfMetropolisSteps = (unsigned int) 10;
-    unsigned int numberOfEquilibrationSteps = (unsigned int) 0;
+    auto numberOfParticlesArray=std::vector<unsigned int>{100};//,100,500};
+    unsigned int numberOfMetropolisSteps = (unsigned int) 1E6;
+    unsigned int numberOfEquilibrationSteps = (unsigned int) 1E5;
     double omega = 1.0; // Oscillator frequency.
     double a_ho = std::sqrt(1./omega); // Characteristic size of the Harmonic Oscillator
     // double alpha = 0.5; // Variational parameter.
@@ -99,7 +100,7 @@ int main() {
     for (unsigned int numberOfDimensions = 3; numberOfDimensions < 4; numberOfDimensions++){
         for (unsigned int i = 0; i < numberOfParticlesArray.size(); i++){
             numberOfParticles = numberOfParticlesArray[i];
-            for(double alpha = 0.4; alpha < 0.65; alpha += 0.1){
+            for(double alpha = 0.6; alpha < 0.85; alpha += 10.1){
 
                 #ifdef TIMEING
                 using std::chrono::high_resolution_clock;

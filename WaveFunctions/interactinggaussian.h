@@ -12,6 +12,6 @@ public:
     std::vector<double> quantumForce(std::vector<std::unique_ptr<class Particle>>& particles, int index);
     std::vector<double> quantumForceMoved(std::vector<std::unique_ptr<class Particle>>& particles, int index, std::vector<double>& step);
     double phiRatio(std::vector<std::unique_ptr<class Particle>>& particles, int index, std::vector<double>& step);
-    double uPrime(double r);
+    double uPrime_r(double r);
     double uDoublePrime(double r);
 };

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <memory>
 #include <cassert>
+// #include <bits/stdc++.h>
 
 #include "system.h"
 #include "sampler.h"
@@ -10,6 +11,7 @@
 #include "InitialStates/initialstate.h"
 #include "Solvers/montecarlo.h"
 
+void testEquilibration(std::vector<std::unique_ptr<Particle>>& particles, double alpha);
 
 System::System(
         std::unique_ptr<class Hamiltonian> hamiltonian,
@@ -39,6 +41,10 @@ std::unique_ptr<class Sampler> System::runEquilibrationSteps(
         sampler->equilibrationSample(m_solver->step(stepLength, *m_waveFunction, m_particles));
 
     }
+
+    // TESTING
+    if (m_waveFunction->getNumberOfParameters() > 2)
+        testEquilibration(m_particles, m_waveFunction->getParameters()[2]);
 
     return sampler;
 }
@@ -75,4 +81,29 @@ const std::vector<double>& System::getWaveFunctionParameters()
 {
     // Helper function
     return m_waveFunction->getParameters();
+}
+
+void testEquilibration(std::vector<std::unique_ptr<Particle>>& particles, double alpha)
+{
+    double r2, diff;
+    std::vector<double> distances;
+    for (unsigned int k = 0; k < particles.size(); k++){
+        auto position = particles[k]->getPosition();
+        for (unsigned int i = k+1; i < particles.size(); i++){
+            auto position2 = particles[i]->getPosition();
+            r2 = 0;
+            for (unsigned int j = 0; j < position.size(); j++){
+                diff = position[j] - position2[j];
+                r2 += diff*diff;
+            }
+            distances.push_back(sqrt(r2));
+        }
+    }
+
+    // std::sort(distances.begin(), distances.end());
+  
+    std::cout << "Distances:\n";
+    for (unsigned int i = 0; i<distances.size(); i++)
+        std::cout << distances[i]/alpha << "\t";
+    std::cout << "\n";
 }

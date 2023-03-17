@@ -1,6 +1,8 @@
 #include <memory>
 #include <math.h>
 #include <assert.h>
+#include <stdio.h>
+#include <string>
 
 #include "interactinggaussian.h"
 #include "wavefunction.h"
@@ -8,6 +10,11 @@
 #include "../particle.h"
 
 #include <iostream>
+
+void testDoubleDerivative(
+    std::vector<std::unique_ptr<class Particle>>& particles,
+    class WaveFunction& waveFunction,
+    double nabla2);
 
 InteractingGaussian::InteractingGaussian(double alpha, double beta, double a)
 {
@@ -19,9 +26,9 @@ InteractingGaussian::InteractingGaussian(double alpha, double beta, double a)
     m_parameters.push_back(a);
 }
 
-double InteractingGaussian::uPrime(double r){
-    // *************** Derivative of log(1.-(m_parameters[2]/r)) ***************
-    return m_parameters[2]/(r*abs(m_parameters[2]-r));
+double InteractingGaussian::uPrime_r(double r){
+    // *************** [Derivative of log(1.-(m_parameters[2]/r))]/r ***************
+    return m_parameters[2]/(r*r*abs(m_parameters[2]-r));
 }
 
 double InteractingGaussian::uDoublePrime(double r){
@@ -70,41 +77,77 @@ double InteractingGaussian::computeDoubleDerivative(std::vector<std::unique_ptr<
     // The second derivative of exp(-alpha x*x) is exp(-alpha x*x)*(4*alpha*alpha*x*x - 2*alpha)
     
     
-    // /* Analytical expression
+    // Non-interacting part
     double r2 = 0;
     for (unsigned int i = 0; i < particles.size(); i++){
-        std::vector<double> position = particles[i]->getPosition();
+        auto position = particles[i]->getPosition();
         for (unsigned int j = 0; j < particles[i]->getNumberOfDimensions(); j++)
             r2 += position[j]*position[j];
     }
     int n = particles.size() * particles[0]->getNumberOfDimensions();
     double nabla2 = 4*m_parameters[0]*m_parameters[0]*r2 - 2*n*m_parameters[0];
 
+    // double sum over all particles
+    double diff, dist, u_p;
+    std::vector<double> repulsion, position;
+    for (unsigned int k = 0; k < particles.size(); k++){
+        repulsion = std::vector<double>{0.,0.,0.};
+        position = particles[k]->getPosition();
+        for (unsigned int i = 0; i < particles.size(); i++){
+            if (i==k) continue;
+            auto position2 = particles[i]->getPosition();
+            r2 = 0;
+            for (unsigned int j = 0; j < position.size(); j++){
+                diff = position[j] - position2[j];
+                r2 += diff*diff;
+            }
+            dist = sqrt(r2);
+            u_p = uPrime_r(dist);
+            for (unsigned int j = 0; j < position.size(); j++){
+                diff = position[j] - position2[j];
+                repulsion[j] += diff*u_p;
+            }
+            nabla2 += uDoublePrime(dist) + 2*u_p;
+        }
+        for (unsigned int j = 0; j < position.size(); j++){
+            // nabla phi = -2*alpha*r
+            nabla2 += -4 * m_parameters[0] * position[j] * repulsion[j];
+            nabla2 += repulsion[j] * repulsion[j];
+        }
+
+    }
+
+    // TESTING:
+    // testDoubleDerivative(particles, *this, nabla2);
+
     return nabla2;
-    // This line always closes a multiline comment */
+}
     
+void testDoubleDerivative(
+    std::vector<std::unique_ptr<class Particle>>& particles,
+    class WaveFunction& waveFunction,
+    double nablaAnal){
     
-    
-    /* Numerical calculation
+    //* Numerical calculation
     double nabla2 = 0, phi, phi_plus, phi_minus;
     // double phi, phi_plus, phi_minus;
     // nabla2 = 0;
-    const double dx = 1e-5, dx2_1 = 1/(dx*dx); // dx2_1 = 1/(dx*dx)
-    assert(abs(dx2_1 - 1/(dx*dx))<1);
-    phi = evaluate(particles);
+    const double dx = 1e-5, dx2_1 = 1/(dx*dx);
+    phi = waveFunction.evaluate(particles);
     for (unsigned int i = 0; i < particles.size(); i++){
         for (unsigned int j = 0; j < particles[i]->getNumberOfDimensions(); j++){
             particles[i]->adjustPosition(dx, j);
-            phi_plus = evaluate(particles);
+            phi_plus = waveFunction.evaluate(particles);
             particles[i]->adjustPosition(-2*dx, j);
-            phi_minus = evaluate(particles);
+            phi_minus = waveFunction.evaluate(particles);
             particles[i]->adjustPosition(dx, j);
             
             nabla2 += (phi_plus + phi_minus - 2*phi)*dx2_1;
         }
     }
+    nabla2 /= phi;
 
-    return nabla2/phi;
+    std::cout << "Analytical: " << nablaAnal << "   \t Numerical: " << nabla2 << "   \t Rel Diff: " << abs((nabla2-nablaAnal)/nabla2) << std::endl;
     // This line always closes a multiline comment */
 }
 
@@ -127,7 +170,7 @@ std::vector<double> InteractingGaussian::quantumForce(std::vector<std::unique_pt
             r2 += relPos[k]*relPos[k];
         }
         temp = sqrt(r2);
-        temp = uPrime(temp)/temp;
+        temp = uPrime_r(temp);
         for (unsigned int k = 0; k<pos.size(); k++){
             force[k] += relPos[k] * temp;
         }
@@ -155,7 +198,7 @@ std::vector<double> InteractingGaussian::quantumForceMoved(std::vector<std::uniq
             r2 += relPos[k]*relPos[k];
         }
         temp = sqrt(r2);
-        temp = uPrime(temp)/temp;
+        temp = uPrime_r(temp);
         for (unsigned int k = 0; k<pos.size(); k++){
             force[k] += relPos[k] * temp;
         }
