@@ -21,11 +21,11 @@ InteractingGaussian::InteractingGaussian(double alpha, double beta, double a)
 
 double InteractingGaussian::uPrime(double r){
     // *************** Derivative of log(1.-(m_parameters[2]/r)) ***************
-    return m_parameters[2]/(r*(m_parameters[2]-r));
+    return m_parameters[2]/(r*abs(m_parameters[2]-r));
 }
 
 double InteractingGaussian::uDoublePrime(double r){
-    // *************** Derivative of log(1.-(m_parameters[2]/r)) ***************
+    // *************** Second derivative of log(1.-(m_parameters[2]/r)) ***************
     return (m_parameters[2]*(m_parameters[2]-2*r))/(r*r*(m_parameters[2]-r)*(m_parameters[2]-r));
     // return 1/(r*r)-1/((m_parameters[2]-r)*(m_parameters[2]-r));
 }
@@ -138,11 +138,27 @@ std::vector<double> InteractingGaussian::quantumForce(std::vector<std::unique_pt
 std::vector<double> InteractingGaussian::quantumForceMoved(std::vector<std::unique_ptr<class Particle>>& particles, int index, std::vector<double>& step){
     //***************WE RETURN d/dx(phi)/phi NOT d/dx(phi)*********************
 
+    double r2, temp;
     auto pos = particles[index]->getPosition();
     auto force = std::vector<double>(pos);
     for (unsigned int i=0; i<force.size(); i++){
         force[i] += step[i];
         force[i] *= -2*m_parameters[0];
+    }
+    for (unsigned int i = 0; i<particles.size(); i++){
+        if ((int)i == index) continue;
+        auto pos2 = particles[i]->getPosition();
+        auto relPos = std::vector<double>();
+        r2 = 0;
+        for (unsigned int k = 0; k<pos.size(); k++){
+            relPos.push_back(pos[k] + step[k] - pos2[k]);
+            r2 += relPos[k]*relPos[k];
+        }
+        temp = sqrt(r2);
+        temp = uPrime(temp)/temp;
+        for (unsigned int k = 0; k<pos.size(); k++){
+            force[k] += relPos[k] * temp;
+        }
     }
     return force;
 }
@@ -166,7 +182,7 @@ double InteractingGaussian::phiRatio(std::vector<std::unique_ptr<class Particle>
         }
         Jik = 1-m_parameters[2]/sqrt(r2);
         if (Jik<0)
-            phi *= 100; // arbitrary constant to motivate particles that overlap to move
+            phi *= 1E6; // arbitrary constant to motivate particles that overlap to move
         else{
             JikNew = std::max(1-m_parameters[2]/sqrt(r2new),0.);
             phi *= JikNew*JikNew/(Jik*Jik);
