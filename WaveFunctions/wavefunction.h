@@ -9,6 +9,8 @@ public:
 
     int getNumberOfParameters() { return m_numberOfParameters; }
     const std::vector<double>& getParameters() { return m_parameters; }
+    
+    virtual void InitialisePositions(std::vector<std::unique_ptr<class Particle>>& particles) = 0;
     virtual double evaluate(std::vector<std::unique_ptr<class Particle>>& particles) = 0;
     virtual double computeDoubleDerivative(std::vector<std::unique_ptr<class Particle>>& particles) = 0;
     virtual std::vector<double> quantumForce(std::vector<std::unique_ptr<class Particle>>& particles, int index) = 0;

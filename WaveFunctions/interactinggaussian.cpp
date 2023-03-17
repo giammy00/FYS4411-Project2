@@ -26,6 +26,23 @@ InteractingGaussian::InteractingGaussian(double alpha, double beta, double a)
     m_parameters.push_back(a);
 }
 
+void InteractingGaussian::InitialisePositions(std::vector<std::unique_ptr<class Particle>>& particles){
+    double r2;
+    distances = std::vector<std::vector<double>>();
+    for (unsigned int i = 0; i < particles.size(); i++){
+        auto pos = particles[i]->getPosition();
+        auto temp = std::vector<double>();
+        for (unsigned int j = 0; j<i; j++){
+            auto pos2 = particles[j]->getPosition();
+            for (unsigned int k = 0; k<pos.size(); k++){
+                r2 += (pos2[k] - pos[k])*(pos2[k] - pos[k]);
+            }
+            temp.push_back(sqrt(r2));
+        }
+        distances.push_back(temp);
+    }
+}
+
 double InteractingGaussian::uPrime_r(double r){
     // *************** [Derivative of log(1.-(m_parameters[2]/r))]/r ***************
     return m_parameters[2]/(r*r*abs(m_parameters[2]-r));

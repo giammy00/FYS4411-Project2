@@ -25,6 +25,7 @@ System::System(
     m_waveFunction = std::move(waveFunction);
     m_solver = std::move(solver);
     m_particles = std::move(particles);
+    m_waveFunction->InitialisePositions(m_particles);
 }
 
 
