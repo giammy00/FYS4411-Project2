@@ -9,6 +9,7 @@
 #include "system.h"
 #include "WaveFunctions/simplegaussian.h"
 #include "WaveFunctions/interactinggaussian.h"
+#include "WaveFunctions/interactinggaussian3d.h"
 #include "Hamiltonians/harmonicoscillator.h"
 #include "InitialStates/initialstate.h"
 #include "Solvers/metropolis.h"
@@ -46,7 +47,7 @@ std::unique_ptr<Sampler> runSimulation(
             std::make_unique<HarmonicOscillator>(omega),
             // Construct unique_ptr to wave function
             // std::make_unique<SimpleGaussian>(alpha),
-            std::make_unique<InteractingGaussian>(alpha),
+            std::make_unique<InteractingGaussian3D>(alpha),
             // Construct unique_ptr to solver, and move rng
             std::make_unique<MetropolisHastings>(std::move(rng)),
             // std::make_unique<Metropolis>(std::move(rng)),
@@ -73,9 +74,9 @@ int main() {
 
     // unsigned int numberOfDimensions = 3;
     unsigned int numberOfParticles = 1;
-    auto numberOfParticlesArray=std::vector<unsigned int>{10};//,100,500};
-    unsigned int numberOfMetropolisSteps = (unsigned int) 1E2;
-    unsigned int numberOfEquilibrationSteps = (unsigned int) 1E0;
+    auto numberOfParticlesArray=std::vector<unsigned int>{100};//{1,10,100,500};
+    unsigned int numberOfMetropolisSteps = (unsigned int) 1E4;
+    unsigned int numberOfEquilibrationSteps = (unsigned int) 1E3;
     double omega = 1.0; // Oscillator frequency.
     double a_ho = std::sqrt(1./omega); // Characteristic size of the Harmonic Oscillator
     // double alpha = 0.5; // Variational parameter.
