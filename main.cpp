@@ -39,7 +39,7 @@ std::unique_ptr<Sampler> runSimulation(
     auto rng = std::make_unique<Random>(seed);
     // Initialize particles
     // auto particles = setupNonOverlappingGaussianInitialState(numberOfDimensions, numberOfParticles, *rng, a_ho);
-    auto particles = setupRandomGaussianInitialState(numberOfDimensions, numberOfParticles, *rng, a_ho);
+    auto particles = setupNonOverlappingGaussianInitialState(numberOfDimensions, numberOfParticles, *rng, a_ho);
     // Construct a unique pointer to a new System
     auto system = std::make_unique<System>(
             // Construct unique_ptr to Hamiltonian
@@ -74,8 +74,8 @@ int main() {
     // unsigned int numberOfDimensions = 3;
     unsigned int numberOfParticles = 1;
     auto numberOfParticlesArray=std::vector<unsigned int>{10};//,100,500};
-    unsigned int numberOfMetropolisSteps = (unsigned int) 100;
-    unsigned int numberOfEquilibrationSteps = (unsigned int) 0;
+    unsigned int numberOfMetropolisSteps = (unsigned int) 1E2;
+    unsigned int numberOfEquilibrationSteps = (unsigned int) 1E0;
     double omega = 1.0; // Oscillator frequency.
     double a_ho = std::sqrt(1./omega); // Characteristic size of the Harmonic Oscillator
     // double alpha = 0.5; // Variational parameter.

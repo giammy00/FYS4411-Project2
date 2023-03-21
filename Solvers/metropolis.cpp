@@ -39,10 +39,12 @@ bool Metropolis::step(
     // #define PhiRatioDEBUG
     #ifdef PhiRatioDEBUG
     double phiOld = waveFunction.evaluate(particles);
+    waveFunction.adjustPosition(particles, index, step);
     particles[index]->adjustPosition(step);
     double phiNew = waveFunction.evaluate(particles);
     auto backStep = std::vector<double>();
     for (unsigned int i = 0; i < step.size(); i++) backStep.push_back(- step[i]);
+    waveFunction.adjustPosition(particles, index, backStep);
     particles[index]->adjustPosition(backStep);
     std::cout << "phi old: " << phiOld << "\tphi new: " << phiNew << "\tError: " << (phiNew*phiNew/(phiOld*phiOld)-q)/q << "\tq: " << q << std::endl; 
     #endif
