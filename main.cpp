@@ -15,6 +15,7 @@
 #include "Math/random.h"
 #include "particle.h"
 #include "sampler.h"
+#include "optimizer.h"
 
 using namespace std;
 
@@ -61,18 +62,27 @@ std::unique_ptr<Sampler> runSimulation(
             stepLength,
             numberOfMetropolisSteps);
 
-    //here the system should call wavefunction's function "compute gradient (or similar)", giving as inputs the relevant quantities contained in the sampler.
-    //note the sampler has already computed the averages at the end of call to runMetropolisSteps(). need to code something like:
-    //system->waveFunction.computeGradient( sampler.RelevantParameters )
-    //then the alpha and beta should be updated using gradient descent and system->runMetropolisSteps should be called again (no need to re-equilibrate)
-    //(consider doing the loop over alphas here instead of main???)
+    //here should call sampler->computeGradientEtrial()
+    
     return sampler;
 }
 int main() {
     // Seed for the random number generator
     // int seed = 2023;
-
+    
     // unsigned int numberOfDimensions = 3;
+
+    //set a maximum number of iterations for gd
+    unsigned int nMaxIter = 10;
+    unsigned int iterCount;
+    //set tolerance for convergence of gd
+    double energyTol = 0.01;
+    double energyChange;
+    double oldEnergy, newEnergy; 
+    //set initial parameter for gd
+    double alpha;
+    //init optimizer for gd
+    MomentumGD optimizer = MomentumGD();
     unsigned int numberOfParticles = 1;
     auto numberOfParticlesArray=std::vector<unsigned int>{1,10,100,500};
     unsigned int numberOfMetropolisSteps = (unsigned int) 1E6;
@@ -102,7 +112,11 @@ int main() {
         for (unsigned int i = 0; i < numberOfParticlesArray.size(); i++){
             numberOfParticles = numberOfParticlesArray[i];
             //while ( convergence criterion not met )
-            for(double alpha = 0.2; alpha < 0.85; alpha += 0.1){
+            iterCount=0;
+            alpha=0.3;
+            energyChange=1; //set to 1 just to enter while loop, should be >= energyTol
+            
+            while(iterCount<nMaxIter & energyChange>=energyTol){
 
                 #ifdef TIMEING
                 using std::chrono::high_resolution_clock;
@@ -122,9 +136,7 @@ int main() {
                         alpha,
                         stepLength);
                 
-                //implement in sampler the various cumulative avgs which need to be computed
-                //which averages to compute?? depends on wavefunction, so gradient function which combines the averages 
-                //and returns gradient should be member of the wavefunction
+
                 #ifdef TIMEING
                 auto t2 = high_resolution_clock::now();
                 /* Getting number of milliseconds as an integer. */
