@@ -151,13 +151,13 @@ void Sampler::writeToFile(std::string filename){
     file.close();
 }
 
-std::vector<std::vector<double>> computeGradientTerms( std::vector<double> dPhi_dParams, double Elocal ){
+std::vector<std::vector<double>> Sampler::computeGradientTerms( std::vector<double> dPhi_dParams, double Elocal ){
     ////*****NOTE : by dPhi_dParams we mean the gradient of log(wavefunc.) wrt the variational parameters
     int N = dPhi_dParams.size();
     std::vector<std::vector<double>> gradTerms(N, std::vector<double>(2));
 
     //in every row of the matrix we have terms related to a different variational parameter
-    for( unsigned int i = 0 ; i<N; i++){
+    for(int i = 0 ; i<N; i++){
         gradTerms[i][0] = dPhi_dParams[i];
         gradTerms[i][1] = dPhi_dParams[i]*Elocal;
     }

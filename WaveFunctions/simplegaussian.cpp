@@ -25,18 +25,9 @@ SimpleGaussian::SimpleGaussian(double alpha, std::vector<std::unique_ptr<class P
     
 }
 
-double SimpleGaussian::evaluate(std::vector<std::unique_ptr<class Particle>>& particles) {
-    /* You need to implement a Gaussian wave function here. The positions of
-     * the particles are accessible through the particle[i]->getPosition()
-     * function.
-     */
+double SimpleGaussian::evaluate() {
     // Returns Phi, not Phi^2
-    // double r2 = 0;
-    // for (unsigned int i = 0; i < particles.size(); i++){
-    //     std::vector<double> position = particles[i]->getPosition();
-    //     for (unsigned int j = 0; j<position.size(); j++)
-    //         r2 += position[j]*position[j];
-    // }
+    // NB we need to ensure that updateCachedVariables is called every time a particle is moved.
     double phi = exp(-1*r2*m_parameters[0]);
     return phi;
 }
@@ -130,13 +121,11 @@ std::vector<double> SimpleGaussian::getdPhi_dParams(){
     return std::vector<double>{-r2};
 }
 
-void SimpleGaussian::updateCachedVariables(std::vector<std::unique_ptr<class Particle>>& particles, std::vector<double>& step){
+void SimpleGaussian::updateCachedVariables(std::vector<double>& step){
     //this function helps updating some stored quantities which come up again and again in various computations, to spare computational costs.
-    //in the case of harmonic oscillator the only quantity is: r2=sum_i^Nparticles ( r_i^2 )
+    //in the case of harmonic oscillator the only quantity is: r2=sum_{i^Nparticles} ( r_i^2 )
     //which changes by 2*step*(1+step), when we move EXACTLY one particle by a quantity step (regardless of which particle it is)
     for(unsigned int i=0; i<step.size(); i++){
         r2+=2*step[i]*(1+step[i]);
     }
-
-    
  }

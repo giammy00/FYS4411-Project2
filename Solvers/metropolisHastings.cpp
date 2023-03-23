@@ -52,7 +52,7 @@ bool MetropolisHastings::step(
 
     if(m_rng->nextDouble()<(hastingsArticle)){
         particles[index]->adjustPosition(step);
-        waveFunction.updateCachedVariables(particles, step);
+        waveFunction.updateCachedVariables(step);
         return true;
     }
     return false;

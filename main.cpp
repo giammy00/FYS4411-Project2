@@ -42,7 +42,7 @@ std::unique_ptr<Sampler> runSimulation(
             // Construct unique_ptr to Hamiltonian
             std::make_unique<HarmonicOscillator>(omega),//[x]
             // Construct unique_ptr to wave function
-            std::make_unique<SimpleGaussian>(params[0]),//[x]
+            std::make_unique<SimpleGaussian>(params[0], particles),//[x]
             // Construct unique_ptr to solver, and move rng
             std::make_unique<MetropolisHastings>(std::move(rng)),//[x]
             // std::make_unique<Metropolis>(std::move(rng)),//[x]
@@ -118,7 +118,7 @@ int main() {
             iterCount=0;
             energyChange=1; //set to 1 just to enter while loop, should be >= energyTol
             oldEnergy = 1E7;
-            while(iterCount<nMaxIter & energyChange>=energyTol){
+            while(  (iterCount<nMaxIter) & (energyChange>=energyTol)   ){
 
                 #ifdef TIMEING
                 using std::chrono::high_resolution_clock;
@@ -161,7 +161,7 @@ int main() {
                 std::vector<double> gradient = sampler->computeGradientEtrial();
 
                 //update parameters using momentum gd
-                for(size_t i=0; i<nParams; i++){
+                for(int i=0; i<nParams; i++){
                     velocity[i] = momentum *  velocity[i] + learning_rate * gradient[i] ;
                     wfParams[i]   -= velocity[i];
                 }
