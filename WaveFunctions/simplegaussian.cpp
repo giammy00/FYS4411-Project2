@@ -15,7 +15,7 @@ SimpleGaussian::SimpleGaussian(double alpha, std::vector<std::unique_ptr<class P
     m_numberOfParameters = 1;
     m_parameters.reserve(1);
     m_parameters.push_back(alpha);
-    r2 = 0;
+    r2 = 0.0;
     //store sum of positions squared, useful in many computations
     for (unsigned int i = 0; i < particles.size(); i++){
         std::vector<double> position = particles[i]->getPosition();
@@ -124,8 +124,9 @@ std::vector<double> SimpleGaussian::getdPhi_dParams(){
 void SimpleGaussian::updateCachedVariables(std::vector<double>& step){
     //this function helps updating some stored quantities which come up again and again in various computations, to spare computational costs.
     //in the case of harmonic oscillator the only quantity is: r2=sum_{i^Nparticles} ( r_i^2 )
-    //which changes by 2*step*(1+step), when we move EXACTLY one particle by a quantity step (regardless of which particle it is)
+    //which changes by step*(2+step), when we move EXACTLY one particle by a quantity step (regardless of which particle it is)
     for(unsigned int i=0; i<step.size(); i++){
-        r2+=2*step[i]*(1+step[i]);
+        r2+=step[i]*(2+step[i]);
     }
+    std::cout << " AFTER UPDATE IN simplegaussian r2 = " << r2 << std::endl;
  }

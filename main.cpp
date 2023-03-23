@@ -48,18 +48,18 @@ std::unique_ptr<Sampler> runSimulation(
             // std::make_unique<Metropolis>(std::move(rng)),//[x]
             // Move the vector of particles to system
             std::move(particles));
-
+    
     // Run steps to equilibrate particles
     auto sampler = system->runEquilibrationSteps(//[x]
             stepLength,
             numberOfEquilibrationSteps);
-
+    
     // Run the Metropolis algorithm
     sampler = system->runMetropolisSteps(//[ ]
             std::move(sampler),
             stepLength,
             numberOfMetropolisSteps);
-
+    
     //here should call sampler->computeGradientEtrial()
     // here also print info about current energy and variational parameter (move from main)
     // then compute optimizer->step()
@@ -72,10 +72,10 @@ int main() {
     // int seed = 2023;
     
     //hyperparameters for gradient descent:
-    double learning_rate = 0.1;
+    double learning_rate = 0.001;
     double momentum = 0.9;
     //set initial trainable parameters of the wave function
-    std::vector<double> wfParams = std::vector<double>{0.1,0.2};
+    std::vector<double> wfParams = std::vector<double>{0.1};
     int nParams = wfParams.size();
     //for momentum GD:
     std::vector<double> velocity = std::vector<double>(nParams, 0.0);
@@ -112,6 +112,8 @@ int main() {
     #ifdef TIMEING
     auto times = vector<int>();
     #endif
+
+    
     for (unsigned int numberOfDimensions = 3; numberOfDimensions < 4; numberOfDimensions++){
         for (unsigned int i = 0; i < numberOfParticlesArray.size(); i++){
             numberOfParticles = numberOfParticlesArray[i];
@@ -127,7 +129,7 @@ int main() {
                 using std::chrono::milliseconds;
                 auto t1 = high_resolution_clock::now();
                 #endif
-
+                
                 auto sampler = runSimulation(
                         numberOfDimensions,
                         numberOfParticles,
@@ -157,6 +159,7 @@ int main() {
                 newEnergy = sampler->getEnergy();
                 energyChange = fabs(oldEnergy-newEnergy);
                 oldEnergy = newEnergy;
+
                 //sampler computes gradient 
                 std::vector<double> gradient = sampler->computeGradientEtrial();
 
@@ -164,6 +167,8 @@ int main() {
                 for(int i=0; i<nParams; i++){
                     velocity[i] = momentum *  velocity[i] + learning_rate * gradient[i] ;
                     wfParams[i]   -= velocity[i];
+                    std::cout << gradient[i] << std::endl;
+                    std::cout << velocity[i] << std::endl;
                 }
 
             }

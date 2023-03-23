@@ -23,6 +23,8 @@ Sampler::Sampler(
     m_numberOfParticles = numberOfParticles;
     m_numberOfDimensions = numberOfDimensions;
     m_cumulativeGradientTerms = std::vector<std::vector<double>>(numberOfWFParams, std::vector<double>(2, 0.0)) ;
+    m_gradientTerms = std::vector<std::vector<double>>(numberOfWFParams, std::vector<double>(2, 0.0)) ;
+
 }
 
 // Sampler::Sampler(std::vector<Sampler> samplers){
@@ -115,11 +117,10 @@ void Sampler::computeAverages() {
     m_energy = m_cumulativeEnergy / m_stepNumber;
     m_energy2 = m_cumulativeEnergy2 / m_stepNumber;
 
-    //update other sampled quantities for gradient
-
-    for(unsigned int i=0; i<m_cumulativeGradientTerms.size();i++){
-        for(unsigned int j=0; j<2;j++){
-        m_gradientTerms[i][j]=m_cumulativeGradientTerms[i][j]/m_stepNumber;
+    for(size_t i=0; i<m_cumulativeGradientTerms.size();i++){
+        for(size_t j=0; j<2;j++){
+            std::cout << i << "  " << j << std::endl;
+            m_gradientTerms[i][j]=m_cumulativeGradientTerms[i][j]/m_stepNumber;
         }
     }
 }
