@@ -25,6 +25,13 @@ Sampler::Sampler(
     m_cumulativeGradientTerms = std::vector<std::vector<double>>(numberOfWFParams, std::vector<double>(2, 0.0)) ;
 }
 
+// Sampler::Sampler(std::vector<Sampler> samplers){
+//     m_numberOfParticles = samplers[0].m_numberOfParticles;
+//     m_numberOfDimensions = samplers[0].m_numberOfDimensions;
+//     m_cumulativeGradientTerms = std::vector<std::vector<double>>(numberOfWFParams, std::vector<double>(2, 0.0)) ;
+
+// }
+
 void Sampler::equilibrationSample(bool acceptedStep){
     m_equilibrationStepNumber++;
     m_numberOfAcceptedEquilibrationSteps += acceptedStep;

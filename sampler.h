@@ -20,6 +20,7 @@ public:
     void printOutputToTerminalShort();
     void computeAverages();
     double getEnergy() { return m_energy; }
+    std::vector<double> computeGradientEtrial();
 
     void initiateFile(std::string filename);
     void writeToFile(std::string filename);
@@ -40,7 +41,6 @@ private:
     //averaged quantities to compute gradient
     std::vector<std::vector<double>> m_gradientTerms;
     //compute the gradient of the trial energy wrt variational parameters
-    std::vector<double> computeGradientEtrial();
     std::vector<double> m_waveFunctionParameters;
 
 };

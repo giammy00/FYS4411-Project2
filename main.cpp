@@ -15,8 +15,6 @@
 #include "Math/random.h"
 #include "particle.h"
 #include "sampler.h"
-#include "optimizer.h"
-
 using namespace std;
 
 /*
@@ -31,7 +29,7 @@ std::unique_ptr<Sampler> runSimulation(
     unsigned int numberOfEquilibrationSteps,
     double omega,
     double a_ho,
-    double alpha,
+    std::vector<double> params,
     double stepLength
 ){
     int seed = 2023;
@@ -44,7 +42,7 @@ std::unique_ptr<Sampler> runSimulation(
             // Construct unique_ptr to Hamiltonian
             std::make_unique<HarmonicOscillator>(omega),//[x]
             // Construct unique_ptr to wave function
-            std::make_unique<SimpleGaussian>(alpha),//[x]
+            std::make_unique<SimpleGaussian>(params[0]),//[x]
             // Construct unique_ptr to solver, and move rng
             std::make_unique<MetropolisHastings>(std::move(rng)),//[x]
             // std::make_unique<Metropolis>(std::move(rng)),//[x]
@@ -63,15 +61,24 @@ std::unique_ptr<Sampler> runSimulation(
             numberOfMetropolisSteps);
 
     //here should call sampler->computeGradientEtrial()
-    
+    // here also print info about current energy and variational parameter (move from main)
+    // then compute optimizer->step()
+
+
     return sampler;
 }
 int main() {
     // Seed for the random number generator
     // int seed = 2023;
     
-    // unsigned int numberOfDimensions = 3;
-
+    //hyperparameters for gradient descent:
+    double learning_rate = 0.1;
+    double momentum = 0.9;
+    //set initial trainable parameters of the wave function
+    std::vector<double> wfParams = std::vector<double>{0.1,0.2};
+    int nParams = wfParams.size();
+    //for momentum GD:
+    std::vector<double> velocity = std::vector<double>(nParams, 0.0);
     //set a maximum number of iterations for gd
     unsigned int nMaxIter = 10;
     unsigned int iterCount;
@@ -79,10 +86,7 @@ int main() {
     double energyTol = 0.01;
     double energyChange;
     double oldEnergy, newEnergy; 
-    //set initial parameter for gd
-    double alpha;
-    //init optimizer for gd
-    MomentumGD optimizer = MomentumGD();
+
     unsigned int numberOfParticles = 1;
     auto numberOfParticlesArray=std::vector<unsigned int>{1,10,100,500};
     unsigned int numberOfMetropolisSteps = (unsigned int) 1E6;
@@ -108,14 +112,12 @@ int main() {
     #ifdef TIMEING
     auto times = vector<int>();
     #endif
-    for (unsigned int numberOfDimensions = 1; numberOfDimensions < 4; numberOfDimensions++){
+    for (unsigned int numberOfDimensions = 3; numberOfDimensions < 4; numberOfDimensions++){
         for (unsigned int i = 0; i < numberOfParticlesArray.size(); i++){
             numberOfParticles = numberOfParticlesArray[i];
-            //while ( convergence criterion not met )
             iterCount=0;
-            alpha=0.3;
             energyChange=1; //set to 1 just to enter while loop, should be >= energyTol
-            
+            oldEnergy = 1E7;
             while(iterCount<nMaxIter & energyChange>=energyTol){
 
                 #ifdef TIMEING
@@ -133,7 +135,7 @@ int main() {
                         numberOfEquilibrationSteps,
                         omega,
                         a_ho,
-                        alpha,
+                        wfParams, //I assume that wave function will take a vector<double> of params to be initialized
                         stepLength);
                 
 
@@ -151,6 +153,19 @@ int main() {
                 sampler->writeToFile(filename);
                 // Output information from the simulation
                 sampler->printOutputToTerminalShort();
+                
+                newEnergy = sampler->getEnergy();
+                energyChange = fabs(oldEnergy-newEnergy);
+                oldEnergy = newEnergy;
+                //sampler computes gradient 
+                std::vector<double> gradient = sampler->computeGradientEtrial();
+
+                //update parameters using momentum gd
+                for(size_t i=0; i<nParams; i++){
+                    velocity[i] = momentum *  velocity[i] + learning_rate * gradient[i] ;
+                    wfParams[i]   -= velocity[i];
+                }
+
             }
         }
     }
