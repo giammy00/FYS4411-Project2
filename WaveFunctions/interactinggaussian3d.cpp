@@ -14,7 +14,7 @@
 void testDoubleDerivative3d(
     std::vector<std::unique_ptr<class Particle>>& particles,
     class WaveFunction& waveFunction,
-    double nabla2);
+    double nabla);
 void slowEvaluate3d(std::vector<std::unique_ptr<class Particle>>& particles,
     std::vector<std::vector<double>>& m_distances,
     std::vector<double>& m_parameters, double phi_);
@@ -30,19 +30,26 @@ InteractingGaussian3D::InteractingGaussian3D(double alpha, double beta, double a
 }
 
 void InteractingGaussian3D::InitialisePositions(std::vector<std::unique_ptr<class Particle>>& particles){
-    double r2, dist, u_p;
+    double r2, r, u_p;
     assert(particles[0]->getNumberOfDimensions() == 3);
     m_distances = std::vector<std::vector<double>>();
+    m_uPrime = std::vector<std::vector<double>>();
+    m_uDoublePrime = std::vector<std::vector<double>>();
     for (unsigned int i = 0; i < particles.size(); i++){
         auto pos = particles[i]->getPosition();
         auto temp = std::vector<double>();
+        auto temp2 = std::vector<double>();
+        auto temp3 = std::vector<double>();
         for (unsigned int j = 0; j<i; j++){
             auto pos2 = particles[j]->getPosition();
             r2 = 0;
             for (unsigned int k = 0; k<3; k++){
                 r2 += (pos2[k] - pos[k])*(pos2[k] - pos[k]);
             }
-            temp.push_back(sqrt(r2));
+            r = sqrt(r2);
+            temp.push_back(r);
+            temp2.push_back(uPrime_r(r));
+            temp3.push_back(uDoublePrime(r));
         }
         r2 = 0;
         for (unsigned int k = 0; k<3; k++){
@@ -50,6 +57,8 @@ void InteractingGaussian3D::InitialisePositions(std::vector<std::unique_ptr<clas
         }
         temp.push_back(r2);
         m_distances.push_back(temp);
+        m_uPrime.push_back(temp2);
+        m_uDoublePrime.push_back(temp3);
     }
     m_interForces = std::vector<double>(3*particles.size(),0);
     for (unsigned int k = 0; k < particles.size(); k++){
@@ -57,8 +66,7 @@ void InteractingGaussian3D::InitialisePositions(std::vector<std::unique_ptr<clas
         for (unsigned int i = 0; i<particles.size(); i++){
             if (i == k) continue;
             auto pos2 = particles[i]->getPosition();
-            dist = i<k? m_distances[k][i] : m_distances[i][k];
-            u_p = uPrime_r(dist);
+            u_p = i<k? m_uPrime[k][i] : m_uPrime[i][k];
             for (unsigned int j = 0; j<3; j++){
                 m_interForces[3*k+j] += (pos[j]-pos2[j]) * u_p;
             }
@@ -68,7 +76,7 @@ void InteractingGaussian3D::InitialisePositions(std::vector<std::unique_ptr<clas
 
 void InteractingGaussian3D::adjustPosition(std::vector<std::unique_ptr<class Particle>>& particles, int index, std::vector<double> step){
     
-    double r2, u_p;
+    double r2, u_p, r;
     auto pos_old = particles[index]->getPosition();
     auto pos = particles[index]->getPosition();
     for (unsigned int j = 0; j<3; j++){
@@ -78,15 +86,18 @@ void InteractingGaussian3D::adjustPosition(std::vector<std::unique_ptr<class Par
 
     for (int j = 0; j<index; j++){ // Row
         auto pos2 = particles[j]->getPosition();
-        u_p = uPrime_r(m_distances[index][j]);
+        u_p = m_uPrime[index][j];
         for (unsigned int k = 0; k<3; k++)
             m_interForces[3*j+k] -= (pos2[k] - pos_old[k])*u_p;
         r2 = 0;
         for (unsigned int k = 0; k<3; k++){
             r2 += (pos2[k] - pos[k])*(pos2[k] - pos[k]);
         }
-        m_distances[index][j]=sqrt(r2);
-        u_p = uPrime_r(m_distances[index][j]);
+        r = sqrt(r2);
+        m_distances[index][j]=r;
+        u_p = uPrime_r(r);
+        m_uPrime[index][j]=u_p;
+        m_uDoublePrime[index][j]=uDoublePrime(r);
         for (unsigned int k = 0; k<3; k++){
             m_interForces[3*j+k] += (pos2[k] - pos[k])*u_p;
             m_interForces[3*index+k] += (pos[k]-pos2[k]) * u_p;
@@ -99,15 +110,18 @@ void InteractingGaussian3D::adjustPosition(std::vector<std::unique_ptr<class Par
     m_distances[index][index] = r2;
     for (unsigned int j = index+1; j<particles.size(); j++){ // Column
         auto pos2 = particles[j]->getPosition();
-        u_p = uPrime_r(m_distances[j][index]);
+        u_p = m_uPrime[j][index];
         for (unsigned int k = 0; k<3; k++)
             m_interForces[3*j+k] -= (pos2[k] - pos_old[k])*u_p;
         r2 = 0;
         for (unsigned int k = 0; k<3; k++){
             r2 += (pos2[k] - pos[k])*(pos2[k] - pos[k]);
         }
-        m_distances[j][index]=sqrt(r2);
-        u_p = uPrime_r(m_distances[j][index]);
+        r = sqrt(r2);
+        m_distances[j][index]=r;
+        u_p = uPrime_r(r);
+        m_uPrime[j][index] = u_p;
+        m_uDoublePrime[j][index] = uDoublePrime(r);
         for (unsigned int k = 0; k<3; k++){
             m_interForces[3*j+k] += (pos2[k] - pos[k])*u_p;
             m_interForces[3*index+k] += (pos[k]-pos2[k]) * u_p;
@@ -134,14 +148,32 @@ double InteractingGaussian3D::evaluate(std::vector<std::unique_ptr<class Particl
      * function.
      */
     // Returns Phi, not Phi^2
-    double r2 = 0, a = m_parameters[2];
+    // double r2 = 0, a = m_parameters[2];
+    // for (unsigned int i = 0; i < particles.size(); i++){
+    //     r2 += m_distances[i][i];
+    // }
+    // double phi = exp(-1*r2*m_parameters[0]);
+    // for (unsigned int i = 0; i < particles.size(); i++){
+    //     for (unsigned int j = i+1; j<particles.size(); j++){
+    //         phi *= std::max(1-a/m_distances[j][i],0.);
+    //     }
+    // }
+
+    double r2 = 0;
     for (unsigned int i = 0; i < particles.size(); i++){
-        r2 += m_distances[i][i];
+        std::vector<double> pos = particles[i]->getPosition();
+        for (unsigned int j = 0; j<3; j++)
+            r2 += pos[j]*pos[j];
     }
     double phi = exp(-1*r2*m_parameters[0]);
     for (unsigned int i = 0; i < particles.size(); i++){
+        std::vector<double> pos = particles[i]->getPosition();
         for (unsigned int j = i+1; j<particles.size(); j++){
-            phi *= std::max(1-a/m_distances[j][i],0.);
+            std::vector<double> pos2 = particles[j]->getPosition();
+            r2 = 0;
+            for (unsigned int k = 0; k<3; k++)
+                r2 += (pos[k]-pos2[k])*(pos[k]-pos2[k]);
+            phi *= std::max(1-m_parameters[2]/sqrt(r2),0.);
         }
     }
 
@@ -206,13 +238,10 @@ double InteractingGaussian3D::computeDoubleDerivative(std::vector<std::unique_pt
     double nabla2 = 4*alpha*alpha*r2 - 6*n*alpha;
 
     // double sum over all particles
-    double dist, u_p;
     std::vector<double> repulsion, position;
     for (unsigned int k = 0; k < particles.size(); k++){
-        for (unsigned int i = 0; i < k; i++){           
-            dist = m_distances[k][i];
-            u_p = uPrime_r(dist);
-            nabla2 += 2*uDoublePrime(dist) + 4*u_p;
+        for (unsigned int i = 0; i < k; i++){
+            nabla2 += 2*m_uDoublePrime[k][i] + 4*m_uPrime[k][i];
         }
         position = particles[k]->getPosition();
         for (unsigned int j = 0; j < 3; j++){
@@ -223,7 +252,7 @@ double InteractingGaussian3D::computeDoubleDerivative(std::vector<std::unique_pt
     }
 
     // TESTING:
-    // testDoubleDerivative(particles, *this, nabla2);
+    // testDoubleDerivative3d(particles, *this, nabla2);
     // slowDoubleDerivative(particles, nabla2);
 
     return nabla2;
@@ -247,13 +276,11 @@ void InteractingGaussian3D::slowDoubleDerivative(std::vector<std::unique_ptr<cla
     double r2 = 0;
     for (unsigned int i = 0; i < particles.size(); i++){
         auto position = particles[i]->getPosition();
-        for (unsigned int j = 0; j < 3; j++)
+        for (unsigned int j = 0; j < particles[i]->getNumberOfDimensions(); j++)
             r2 += position[j]*position[j];
     }
-    int n = particles.size();
-    double nabla2 = 4*m_parameters[0]*m_parameters[0]*r2 - 3*n*m_parameters[0];
-    // int n = particles.size() * 3;
-    // double nabla2 = 4*m_parameters[0]*m_parameters[0]*r2 - 2*n*m_parameters[0];
+    int n = particles.size() * particles[0]->getNumberOfDimensions();
+    double nabla2 = 4*m_parameters[0]*m_parameters[0]*r2 - 2*n*m_parameters[0];
 
     // double sum over all particles
     double diff, dist, u_p;
@@ -265,19 +292,19 @@ void InteractingGaussian3D::slowDoubleDerivative(std::vector<std::unique_ptr<cla
             if (i==k) continue;
             auto position2 = particles[i]->getPosition();
             r2 = 0;
-            for (unsigned int j = 0; j < 3; j++){
+            for (unsigned int j = 0; j < position.size(); j++){
                 diff = position[j] - position2[j];
                 r2 += diff*diff;
             }
             dist = sqrt(r2);
             u_p = uPrime_r(dist);
-            for (unsigned int j = 0; j < 3; j++){
+            for (unsigned int j = 0; j < position.size(); j++){
                 diff = position[j] - position2[j];
                 repulsion[j] += diff*u_p;
             }
             nabla2 += uDoublePrime(dist) + 2*u_p;
         }
-        for (unsigned int j = 0; j < 3; j++){
+        for (unsigned int j = 0; j < position.size(); j++){
             // nabla phi = -2*alpha*r
             nabla2 += -4 * m_parameters[0] * position[j] * repulsion[j];
             nabla2 += repulsion[j] * repulsion[j];
@@ -292,7 +319,7 @@ void testDoubleDerivative3d(
     class WaveFunction& waveFunction,
     double nablaAnal){
     
-    //* Numerical calculation
+    // Numerical calculation
     double nabla2 = 0, phi, phi_plus, phi_minus;
     // double phi, phi_plus, phi_minus;
     // nabla2 = 0;
@@ -312,7 +339,6 @@ void testDoubleDerivative3d(
     nabla2 /= phi;
 
     std::cout << "Analytical: " << nablaAnal << "   \t Numerical: " << nabla2 << "   \t Rel Diff: " << abs((nabla2-nablaAnal)/nabla2) << std::endl;
-    // This line always closes a multiline comment */
 }
 
 
