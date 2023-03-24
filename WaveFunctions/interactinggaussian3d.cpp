@@ -422,3 +422,13 @@ double InteractingGaussian3D::phiRatio(std::vector<std::unique_ptr<class Particl
     }
     return phi;
 }
+
+std::vector<double> InteractingGaussian3D::getdPhi_dParams(std::vector<std::unique_ptr<class Particle>>& particles){
+    double r2 = 0;
+    for (unsigned int i = 0; i < particles.size(); i++){
+        std::vector<double> position = particles[i]->getPosition();
+        for (unsigned int j = 0; j<position.size(); j++)
+            r2 += position[j]*position[j];
+    }
+    return std::vector<double>{-r2, 0};
+}

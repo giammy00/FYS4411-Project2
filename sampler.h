@@ -7,7 +7,8 @@ class Sampler {
 public:
     Sampler(
         unsigned int numberOfParticles,
-        unsigned int numberOfDimensions
+        unsigned int numberOfDimensions,
+        int numberOfWFParams
         );
     // Sampler(std::vector<Sampler> samplers);
 
@@ -19,7 +20,7 @@ public:
     void printOutputToTerminalShort();
     void computeAverages();
     double getEnergy() { return m_energy; }
-
+    std::vector<double> computeGradientEtrial();
     void initiateFile(std::string filename);
     void writeToFile(std::string filename);
 
@@ -34,5 +35,11 @@ private:
     double m_cumulativeEnergy = 0;
     double m_energy2 = 0;
     double m_cumulativeEnergy2 = 0;
+    //sampled cumulative quantities for computing gradient.
+    std::vector<std::vector<double>> m_cumulativeGradientTerms;
+    //averaged quantities to compute gradient
+    std::vector<std::vector<double>> m_gradientTerms;
+    //compute the gradient of the trial energy wrt variational parameters
     std::vector<double> m_waveFunctionParameters;
+
 };

@@ -23,6 +23,7 @@ public:
 
     double computeLocalEnergy();
     const std::vector<double>& getWaveFunctionParameters();
+    std::vector<double> getdPhi_dParams();
 
 private:
     unsigned int m_numberOfParticles = 0;

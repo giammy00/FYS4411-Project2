@@ -54,6 +54,7 @@ bool Metropolis::step(
     if(m_rng->nextDouble()<q){
         waveFunction.adjustPosition(particles, index, step);
         particles[index]->adjustPosition(step);
+
         return true;
     }
     

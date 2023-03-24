@@ -17,9 +17,8 @@ public:
     virtual std::vector<double> quantumForce(std::vector<std::unique_ptr<class Particle>>& particles, int index) = 0;
     virtual std::vector<double> quantumForceMoved(std::vector<std::unique_ptr<class Particle>>& particles, int index, std::vector<double>& step) = 0;
     virtual double phiRatio(std::vector<std::unique_ptr<class Particle>>& particles, int index, std::vector<double>& step) = 0;
-
+    virtual std::vector<double> getdPhi_dParams(std::vector<std::unique_ptr<class Particle>>& particles) = 0;
 protected:
     int m_numberOfParameters = 0;
     std::vector<double> m_parameters = std::vector<double>();
 };
-
