@@ -119,7 +119,6 @@ void Sampler::computeAverages() {
 
     for(size_t i=0; i<m_cumulativeGradientTerms.size();i++){
         for(size_t j=0; j<2;j++){
-            std::cout << i << "  " << j << std::endl;
             m_gradientTerms[i][j]=m_cumulativeGradientTerms[i][j]/m_stepNumber;
         }
     }

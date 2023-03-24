@@ -72,18 +72,20 @@ int main() {
     // int seed = 2023;
     
     //hyperparameters for gradient descent:
-    double learning_rate = 0.001;
-    double momentum = 0.9;
-    //set initial trainable parameters of the wave function
-    std::vector<double> wfParams = std::vector<double>{0.1};
-    int nParams = wfParams.size();
+    double learning_rate = 0.005;
+    double momentum = 0.4;
+    //store initial trainable parameters of the wave function
+    std::vector<double> wfParams0 = std::vector<double>{0.3};
+    //wfParams is reset to wfParams0 every time a new gradient descent is started
+    std::vector<double> wfParams ;
+    int nParams = wfParams0.size();
     //for momentum GD:
     std::vector<double> velocity = std::vector<double>(nParams, 0.0);
     //set a maximum number of iterations for gd
-    unsigned int nMaxIter = 10;
+    unsigned int nMaxIter = 100;
     unsigned int iterCount;
     //set tolerance for convergence of gd
-    double energyTol = 0.01;
+    double energyTol = 1E-6;
     double energyChange;
     double oldEnergy, newEnergy; 
 
@@ -119,7 +121,8 @@ int main() {
             numberOfParticles = numberOfParticlesArray[i];
             iterCount=0;
             energyChange=1; //set to 1 just to enter while loop, should be >= energyTol
-            oldEnergy = 1E7;
+            oldEnergy = 1E7;//to enter while loop twice
+            wfParams=wfParams0;//restart gradient descent.
             while(  (iterCount<nMaxIter) & (energyChange>=energyTol)   ){
 
                 #ifdef TIMEING
@@ -137,7 +140,7 @@ int main() {
                         numberOfEquilibrationSteps,
                         omega,
                         a_ho,
-                        wfParams, //I assume that wave function will take a vector<double> of params to be initialized
+                        wfParams, //I assumed that wave function will take a std::vector<double> of params to be initialized
                         stepLength);
                 
 
@@ -167,8 +170,6 @@ int main() {
                 for(int i=0; i<nParams; i++){
                     velocity[i] = momentum *  velocity[i] + learning_rate * gradient[i] ;
                     wfParams[i]   -= velocity[i];
-                    std::cout << gradient[i] << std::endl;
-                    std::cout << velocity[i] << std::endl;
                 }
 
             }

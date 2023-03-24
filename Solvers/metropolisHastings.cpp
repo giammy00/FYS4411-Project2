@@ -51,8 +51,9 @@ bool MetropolisHastings::step(
     double hastingsArticle = waveFunction.phiRatio(particles, index, step) * exp(greensDiff/(2*dt));
 
     if(m_rng->nextDouble()<(hastingsArticle)){
+        //updating the cached r^2 in simple gaussian
+        waveFunction.updateCachedVariables(particles[index]->getPosition(), step);
         particles[index]->adjustPosition(step);
-        waveFunction.updateCachedVariables(step);
         return true;
     }
     return false;

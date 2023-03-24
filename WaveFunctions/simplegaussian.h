@@ -15,5 +15,5 @@ public:
     double phiRatio(std::vector<std::unique_ptr<class Particle>>& particles, int index, std::vector<double>& step);
      //derivative of log(wavefunc.) wrt variational parameter
     std::vector<double> getdPhi_dParams();
-    void updateCachedVariables(std::vector<double>& step);
+    void updateCachedVariables(std::vector<double> initial_pos, std::vector<double>& step);
 };

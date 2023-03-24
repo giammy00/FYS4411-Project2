@@ -57,7 +57,6 @@ std::unique_ptr<class Sampler> System::runMetropolisSteps(
          * sampler instance of the Sampler class.
          */
         sampler->sample(acceptedStep, this);
-        exit(1);
     }
     sampler->transferWaveFunctionParameters(m_waveFunction->getParameters());
     sampler->computeAverages();

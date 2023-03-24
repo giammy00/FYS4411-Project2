@@ -121,12 +121,11 @@ std::vector<double> SimpleGaussian::getdPhi_dParams(){
     return std::vector<double>{-r2};
 }
 
-void SimpleGaussian::updateCachedVariables(std::vector<double>& step){
+void SimpleGaussian::updateCachedVariables(std::vector<double> initial_pos, std::vector<double>& step){
     //this function helps updating some stored quantities which come up again and again in various computations, to spare computational costs.
     //in the case of harmonic oscillator the only quantity is: r2=sum_{i^Nparticles} ( r_i^2 )
-    //which changes by step*(2+step), when we move EXACTLY one particle by a quantity step (regardless of which particle it is)
+    //which changes by step*(2*original_position+step), when we move EXACTLY one particle by a quantity step (regardless of which particle it is)
     for(unsigned int i=0; i<step.size(); i++){
-        r2+=step[i]*(2+step[i]);
+        r2+=step[i]*(2*initial_pos[i]+step[i]);
     }
-    std::cout << " AFTER UPDATE IN simplegaussian r2 = " << r2 << std::endl;
  }

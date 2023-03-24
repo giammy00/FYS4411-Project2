@@ -35,7 +35,6 @@ double HarmonicOscillator::computeLocalEnergy(
         for (unsigned int i = 0; i<particles[0]->getNumberOfDimensions(); i++)
             r2 += position[i]*position[i];
     }
-    std::cout << "in hamiltionian r2 = " << r2 << std::endl;
     // m = omega = 1
     double potentialEnergy = 0.5 * r2;
     double kineticEnergy   = waveFunction.computeDoubleDerivative(particles)*-0.5;

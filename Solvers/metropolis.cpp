@@ -36,8 +36,9 @@ bool Metropolis::step(
 
 
     if(m_rng->nextDouble()<q){
+        waveFunction.updateCachedVariables(particles[index]->getPosition(), step);
         particles[index]->adjustPosition(step);
-        waveFunction.updateCachedVariables(step);
+
         return true;
     }
     
