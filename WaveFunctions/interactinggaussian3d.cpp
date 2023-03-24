@@ -148,32 +148,14 @@ double InteractingGaussian3D::evaluate(std::vector<std::unique_ptr<class Particl
      * function.
      */
     // Returns Phi, not Phi^2
-    // double r2 = 0, a = m_parameters[2];
-    // for (unsigned int i = 0; i < particles.size(); i++){
-    //     r2 += m_distances[i][i];
-    // }
-    // double phi = exp(-1*r2*m_parameters[0]);
-    // for (unsigned int i = 0; i < particles.size(); i++){
-    //     for (unsigned int j = i+1; j<particles.size(); j++){
-    //         phi *= std::max(1-a/m_distances[j][i],0.);
-    //     }
-    // }
-
-    double r2 = 0;
+    double r2 = 0, a = m_parameters[2];
     for (unsigned int i = 0; i < particles.size(); i++){
-        std::vector<double> pos = particles[i]->getPosition();
-        for (unsigned int j = 0; j<3; j++)
-            r2 += pos[j]*pos[j];
+        r2 += m_distances[i][i];
     }
     double phi = exp(-1*r2*m_parameters[0]);
     for (unsigned int i = 0; i < particles.size(); i++){
-        std::vector<double> pos = particles[i]->getPosition();
         for (unsigned int j = i+1; j<particles.size(); j++){
-            std::vector<double> pos2 = particles[j]->getPosition();
-            r2 = 0;
-            for (unsigned int k = 0; k<3; k++)
-                r2 += (pos[k]-pos2[k])*(pos[k]-pos2[k]);
-            phi *= std::max(1-m_parameters[2]/sqrt(r2),0.);
+            phi *= std::max(1-a/m_distances[j][i],0.);
         }
     }
 
