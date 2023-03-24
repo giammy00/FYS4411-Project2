@@ -1,6 +1,7 @@
 #include <iostream>
 #include <memory>
 #include <cassert>
+// #include <bits/stdc++.h>
 
 #include "system.h"
 #include "sampler.h"
@@ -10,6 +11,7 @@
 #include "InitialStates/initialstate.h"
 #include "Solvers/montecarlo.h"
 
+void testEquilibration(std::vector<std::unique_ptr<Particle>>& particles, double alpha);
 
 System::System(
         std::unique_ptr<class Hamiltonian> hamiltonian,
@@ -23,6 +25,7 @@ System::System(
     m_waveFunction = std::move(waveFunction);
     m_solver = std::move(solver);
     m_particles = std::move(particles);
+    m_waveFunction->InitialisePositions(m_particles);
 }
 
 
@@ -39,6 +42,9 @@ std::unique_ptr<class Sampler> System::runEquilibrationSteps(
     for (unsigned int i = 0; i < numberOfEquilibrationSteps; i++) {
         sampler->equilibrationSample(m_solver->step(stepLength, *m_waveFunction, m_particles));
     }
+
+    // TESTING
+    // if (m_waveFunction->getNumberOfParameters() > 2) testEquilibration(m_particles, m_waveFunction->getParameters()[2]);
 
     return sampler;
 }
@@ -80,6 +86,31 @@ const std::vector<double>& System::getWaveFunctionParameters()
 std::vector<double> System::getdPhi_dParams()
 {
     // Helper function
-    return m_waveFunction->getdPhi_dParams();
+    return m_waveFunction->getdPhi_dParams(m_particles);
 }
 
+
+void testEquilibration(std::vector<std::unique_ptr<Particle>>& particles, double alpha)
+{
+    double r2, diff;
+    std::vector<double> distances;
+    for (unsigned int k = 0; k < particles.size(); k++){
+        auto position = particles[k]->getPosition();
+        for (unsigned int i = k+1; i < particles.size(); i++){
+            auto position2 = particles[i]->getPosition();
+            r2 = 0;
+            for (unsigned int j = 0; j < position.size(); j++){
+                diff = position[j] - position2[j];
+                r2 += diff*diff;
+            }
+            distances.push_back(sqrt(r2));
+        }
+    }
+
+    // std::sort(distances.begin(), distances.end());
+  
+    std::cout << "Distances:\n";
+    for (unsigned int i = 0; i<distances.size(); i++)
+        std::cout << distances[i]/alpha << "\t";
+    std::cout << "\n";
+}

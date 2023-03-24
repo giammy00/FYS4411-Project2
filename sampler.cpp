@@ -48,14 +48,11 @@ void Sampler::sample(bool acceptedStep, System* system) {
 
     //sample quantities for gradient computation
     std::vector<double> currentDerivatives =  system->getdPhi_dParams();
-    std::vector<std::vector<double>>currentGradientTerms =  computeGradientTerms( currentDerivatives, localEnergy);
 
-    //now currentGradientTerms is a matrix, different rows correspond to different parameters
     //update each of the rowas adding current sampled quantity
-    for(unsigned int i=0; i<currentGradientTerms.size();i++){
-        for(unsigned int j=0; j<2;j++){
-            m_cumulativeGradientTerms[i][j]+=currentGradientTerms[i][j];
-        }
+    for(unsigned int i=0; i<currentDerivatives.size();i++){
+        m_cumulativeGradientTerms[i][0]+=currentDerivatives[i];
+        m_cumulativeGradientTerms[i][1]+=currentDerivatives[i]*localEnergy;
     }
     m_stepNumber++;
     m_numberOfAcceptedSteps += acceptedStep;
@@ -69,6 +66,7 @@ void Sampler::transferWaveFunctionParameters(std::vector<double> parameters){
 void Sampler::printOutputToTerminal() {
     auto pa = m_waveFunctionParameters;
     auto p = pa.size();
+    std::vector<double> grad = computeGradientEtrial();
 
     cout << endl;
     cout << "  -- System info -- " << endl;
@@ -88,12 +86,17 @@ void Sampler::printOutputToTerminal() {
     cout << "  -- Results -- " << endl;
     cout << " Energy : " << m_energy << endl;
     cout << " Variance in the energy : " << m_energy2 - m_energy * m_energy << endl;
-    cout << endl;
+    cout << " Gradient of the variational parameters: ";
+    for (unsigned int i=0; i < grad.size(); i++) {
+        cout << grad[i] << '\t';
+    }
+    cout << endl << endl;
 }
 
 void Sampler::printOutputToTerminalShort() {
     auto pa = m_waveFunctionParameters;
     auto p = pa.size();
+    std::vector<double> grad = computeGradientEtrial();
 
     cout << endl;
     cout << "  -- System info -- " << endl;
@@ -108,7 +111,11 @@ void Sampler::printOutputToTerminalShort() {
     cout << "  -- Results -- " << endl;
     cout << " Energy : " << m_energy << endl;
     cout << " Variance in the energy : " << m_energy2 - m_energy * m_energy << endl;
-    cout << endl;
+    cout << " Gradient of the variational parameters: ";
+    for (unsigned int i=0; i < grad.size(); i++) {
+        cout << grad[i] << '\t';
+    }
+    cout << endl << endl;
 }
 
 void Sampler::computeAverages() {
@@ -133,12 +140,14 @@ void Sampler::initiateFile(std::string filename){
         << "n_accepted_steps" << '\t'
         << "E" << '\t'
         << "var" << '\t'
-        << "params" << endl;
+        << "params" << '\t'
+        << "gradient"<< endl;
     file.close();
 }
 
 void Sampler::writeToFile(std::string filename){
     std::ofstream file (filename, std::ofstream::app);
+    std::vector<double> grad = computeGradientEtrial();
     file << m_numberOfParticles << '\t'
         << m_numberOfDimensions << '\t'
         << m_stepNumber << '\t'
@@ -147,21 +156,10 @@ void Sampler::writeToFile(std::string filename){
         << m_energy2 - m_energy * m_energy; // variance
     for (unsigned int i = 0; i < m_waveFunctionParameters.size(); i++)
         file << '\t' << m_waveFunctionParameters[i];
+    for (unsigned int i = 0; i < grad.size(); i++)
+        file << '\t' << grad[i];
     file << endl;
     file.close();
-}
-
-std::vector<std::vector<double>> Sampler::computeGradientTerms( std::vector<double> dPhi_dParams, double Elocal ){
-    ////*****NOTE : by dPhi_dParams we mean the gradient of log(wavefunc.) wrt the variational parameters
-    int N = dPhi_dParams.size();
-    std::vector<std::vector<double>> gradTerms(N, std::vector<double>(2));
-
-    //in every row of the matrix we have terms related to a different variational parameter
-    for(int i = 0 ; i<N; i++){
-        gradTerms[i][0] = dPhi_dParams[i];
-        gradTerms[i][1] = dPhi_dParams[i]*Elocal;
-    }
-    return gradTerms;
 }
 
 //gradient of the trial energy

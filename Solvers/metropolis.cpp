@@ -1,5 +1,7 @@
 #include <memory>
 #include <vector>
+#include <iostream>
+#include <string>
 
 #include "metropolis.h"
 #include "WaveFunctions/wavefunction.h"
@@ -33,10 +35,24 @@ bool Metropolis::step(
         step.push_back(m_rng->nextGaussian(0,stepLength));
     }
     double q = waveFunction.phiRatio(particles, index, step);
+    
+    // #define PhiRatioDEBUG
+    #ifdef PhiRatioDEBUG
+    double phiOld = waveFunction.evaluate(particles);
+    waveFunction.adjustPosition(particles, index, step);
+    particles[index]->adjustPosition(step);
+    double phiNew = waveFunction.evaluate(particles);
+    auto backStep = std::vector<double>();
+    for (unsigned int i = 0; i < step.size(); i++) backStep.push_back(- step[i]);
+    waveFunction.adjustPosition(particles, index, backStep);
+    particles[index]->adjustPosition(backStep);
+    std::cout << "phi old: " << phiOld << "\tphi new: " << phiNew << "\tError: " << (phiNew*phiNew/(phiOld*phiOld)-q)/q << "\tq: " << q << std::endl; 
+    #endif
+
 
 
     if(m_rng->nextDouble()<q){
-        waveFunction.updateCachedVariables(particles[index]->getPosition(), step);
+        waveFunction.adjustPosition(particles, index, step);
         particles[index]->adjustPosition(step);
 
         return true;

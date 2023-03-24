@@ -9,16 +9,16 @@ public:
 
     int getNumberOfParameters() { return m_numberOfParameters; }
     const std::vector<double>& getParameters() { return m_parameters; }
-    virtual double evaluate() = 0;
+    
+    virtual void InitialisePositions(std::vector<std::unique_ptr<class Particle>>& particles) = 0;
+    virtual void adjustPosition(std::vector<std::unique_ptr<class Particle>>& particles, int index, std::vector<double> step) = 0;
+    virtual double evaluate(std::vector<std::unique_ptr<class Particle>>& particles) = 0;
     virtual double computeDoubleDerivative(std::vector<std::unique_ptr<class Particle>>& particles) = 0;
     virtual std::vector<double> quantumForce(std::vector<std::unique_ptr<class Particle>>& particles, int index) = 0;
     virtual std::vector<double> quantumForceMoved(std::vector<std::unique_ptr<class Particle>>& particles, int index, std::vector<double>& step) = 0;
     virtual double phiRatio(std::vector<std::unique_ptr<class Particle>>& particles, int index, std::vector<double>& step) = 0;
-    //updateCachedVariables will update all quantities which are used more than once in the computations, to spare costs.
-    virtual void updateCachedVariables(std::vector<double> initial_pos, std::vector<double>& step) = 0;
-    virtual std::vector<double> getdPhi_dParams() = 0;
+    virtual std::vector<double> getdPhi_dParams(std::vector<std::unique_ptr<class Particle>>& particles) = 0;
 protected:
     int m_numberOfParameters = 0;
     std::vector<double> m_parameters = std::vector<double>();
 };
-

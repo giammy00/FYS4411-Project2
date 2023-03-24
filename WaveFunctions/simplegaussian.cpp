@@ -9,27 +9,32 @@
 
 #include <iostream>
 
-SimpleGaussian::SimpleGaussian(double alpha, std::vector<std::unique_ptr<class Particle>>& particles)
+SimpleGaussian::SimpleGaussian(double alpha, double beta)
 {
     assert(alpha > 0); // If alpha == 0 then the wavefunction doesn't go to zero
-    m_numberOfParameters = 1;
-    m_parameters.reserve(1);
+    m_numberOfParameters = 2;
+    m_parameters.reserve(2);
     m_parameters.push_back(alpha);
-    r2 = 0.0;
-    //store sum of positions squared, useful in many computations
+    m_parameters.push_back(beta);
+}
+
+void SimpleGaussian::InitialisePositions(std::vector<std::unique_ptr<class Particle>>&){}
+
+void SimpleGaussian::adjustPosition(std::vector<std::unique_ptr<class Particle>>&, int, std::vector<double>){}
+
+double SimpleGaussian::evaluate(std::vector<std::unique_ptr<class Particle>>& particles) {
+    /* You need to implement a Gaussian wave function here. The positions of
+     * the particles are accessible through the particle[i]->getPosition()
+     * function.
+     */
+    // Returns Phi, not Phi^2
+    double r2 = 0;
     for (unsigned int i = 0; i < particles.size(); i++){
         std::vector<double> position = particles[i]->getPosition();
         for (unsigned int j = 0; j<position.size(); j++)
             r2 += position[j]*position[j];
     }
-    
-}
-
-double SimpleGaussian::evaluate() {
-    // Returns Phi, not Phi^2
-    // NB we need to ensure that updateCachedVariables is called every time a particle is moved.
-    double phi = exp(-1*r2*m_parameters[0]);
-    return phi;
+    return exp(m_parameters[0]*r2);
 }
 
 double SimpleGaussian::computeDoubleDerivative(std::vector<std::unique_ptr<class Particle>>& particles) {
@@ -47,12 +52,12 @@ double SimpleGaussian::computeDoubleDerivative(std::vector<std::unique_ptr<class
     
     
     // /* Analytical expression
-    // double r2 = 0;
-    // for (unsigned int i = 0; i < particles.size(); i++){
-    //     std::vector<double> position = particles[i]->getPosition();
-    //     for (unsigned int j = 0; j < particles[i]->getNumberOfDimensions(); j++)
-    //         r2 += position[j]*position[j];
-    // }
+    double r2 = 0;
+    for (unsigned int i = 0; i < particles.size(); i++){
+        std::vector<double> position = particles[i]->getPosition();
+        for (unsigned int j = 0; j < particles[i]->getNumberOfDimensions(); j++)
+            r2 += position[j]*position[j];
+    }
     int n = particles.size() * particles[0]->getNumberOfDimensions();
     double nabla2 = 4*m_parameters[0]*m_parameters[0]*r2 - 2*n*m_parameters[0];
 
@@ -117,15 +122,13 @@ double SimpleGaussian::phiRatio(std::vector<std::unique_ptr<class Particle>>& pa
         dr2 += (pos[i]+step[i])*(pos[i]+step[i])-pos[i]*pos[i];
     return exp(-2*m_parameters[0]*dr2);
 }
-std::vector<double> SimpleGaussian::getdPhi_dParams(){
-    return std::vector<double>{-r2};
-}
 
-void SimpleGaussian::updateCachedVariables(std::vector<double> initial_pos, std::vector<double>& step){
-    //this function helps updating some stored quantities which come up again and again in various computations, to spare computational costs.
-    //in the case of harmonic oscillator the only quantity is: r2=sum_{i^Nparticles} ( r_i^2 )
-    //which changes by step*(2*original_position+step), when we move EXACTLY one particle by a quantity step (regardless of which particle it is)
-    for(unsigned int i=0; i<step.size(); i++){
-        r2+=step[i]*(2*initial_pos[i]+step[i]);
+std::vector<double> SimpleGaussian::getdPhi_dParams(std::vector<std::unique_ptr<class Particle>>& particles){
+    double r2 = 0;
+    for (unsigned int i = 0; i < particles.size(); i++){
+        std::vector<double> position = particles[i]->getPosition();
+        for (unsigned int j = 0; j<position.size(); j++)
+            r2 += position[j]*position[j];
     }
- }
+    return std::vector<double>{-r2, 0};
+}

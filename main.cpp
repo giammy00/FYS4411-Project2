@@ -8,6 +8,8 @@
 
 #include "system.h"
 #include "WaveFunctions/simplegaussian.h"
+#include "WaveFunctions/interactinggaussian.h"
+#include "WaveFunctions/interactinggaussian3d.h"
 #include "Hamiltonians/harmonicoscillator.h"
 #include "InitialStates/initialstate.h"
 #include "Solvers/metropolis.h"
@@ -36,26 +38,28 @@ std::unique_ptr<Sampler> runSimulation(
     // The random engine can also be built without a seed
     auto rng = std::make_unique<Random>(seed);
     // Initialize particles
-    auto particles = setupRandomGaussianInitialState(numberOfDimensions, numberOfParticles, *rng, a_ho);//[x]
+    // auto particles = setupNonOverlappingGaussianInitialState(numberOfDimensions, numberOfParticles, *rng, a_ho);
+    auto particles = setupNonOverlappingGaussianInitialState(numberOfDimensions, numberOfParticles, *rng, a_ho);
     // Construct a unique pointer to a new System
-    auto system = std::make_unique<System>(//[x]
+    auto system = std::make_unique<System>(
             // Construct unique_ptr to Hamiltonian
-            std::make_unique<HarmonicOscillator>(omega),//[x]
+            std::make_unique<HarmonicOscillator>(omega),
             // Construct unique_ptr to wave function
-            std::make_unique<SimpleGaussian>(params[0], particles),//[x]
+            // std::make_unique<SimpleGaussian>(alpha),
+            std::make_unique<InteractingGaussian3D>(params[0], params[1]),
             // Construct unique_ptr to solver, and move rng
-            std::make_unique<MetropolisHastings>(std::move(rng)),//[x]
-            // std::make_unique<Metropolis>(std::move(rng)),//[x]
+            std::make_unique<MetropolisHastings>(std::move(rng)),
+            // std::make_unique<Metropolis>(std::move(rng)),
             // Move the vector of particles to system
             std::move(particles));
     
     // Run steps to equilibrate particles
-    auto sampler = system->runEquilibrationSteps(//[x]
+    auto sampler = system->runEquilibrationSteps(
             stepLength,
             numberOfEquilibrationSteps);
     
     // Run the Metropolis algorithm
-    sampler = system->runMetropolisSteps(//[ ]
+    sampler = system->runMetropolisSteps(
             std::move(sampler),
             stepLength,
             numberOfMetropolisSteps);
@@ -72,17 +76,17 @@ int main() {
     // int seed = 2023;
     
     //hyperparameters for gradient descent:
-    double learning_rate = 0.005;
-    double momentum = 0.4;
+    double learning_rate = 1.5E-3;
+    double momentum = 0.2;
     //store initial trainable parameters of the wave function
-    std::vector<double> wfParams0 = std::vector<double>{0.3};
+    std::vector<double> wfParams0 = std::vector<double>{0.3, 0};
     //wfParams is reset to wfParams0 every time a new gradient descent is started
     std::vector<double> wfParams ;
     int nParams = wfParams0.size();
     //for momentum GD:
     std::vector<double> velocity = std::vector<double>(nParams, 0.0);
     //set a maximum number of iterations for gd
-    unsigned int nMaxIter = 100;
+    unsigned int nMaxIter = 1;
     unsigned int iterCount;
     //set tolerance for convergence of gd
     double energyTol = 1E-6;
@@ -90,13 +94,13 @@ int main() {
     double oldEnergy, newEnergy; 
 
     unsigned int numberOfParticles = 1;
-    auto numberOfParticlesArray=std::vector<unsigned int>{1,10,100,500};
-    unsigned int numberOfMetropolisSteps = (unsigned int) 1E6;
-    unsigned int numberOfEquilibrationSteps = (unsigned int) 1E5;
+    auto numberOfParticlesArray=std::vector<unsigned int>{100};//{1,10,100,500};
+    unsigned int numberOfMetropolisSteps = (unsigned int) 1E5;
+    unsigned int numberOfEquilibrationSteps = (unsigned int) 1E4;
     double omega = 1.0; // Oscillator frequency.
     double a_ho = std::sqrt(1./omega); // Characteristic size of the Harmonic Oscillator
     // double alpha = 0.5; // Variational parameter.
-    double stepLength = 5E-2; // Metropolis step length.
+    double stepLength = 1E-1; // Metropolis step length.
     stepLength *= a_ho; // Scale the steplength in case of changed omega
     string filename = "Outputs/output.txt";
 
@@ -168,8 +172,8 @@ int main() {
 
                 //update parameters using momentum gd
                 for(int i=0; i<nParams; i++){
-                    velocity[i] = momentum *  velocity[i] + learning_rate * gradient[i] ;
-                    wfParams[i]   -= velocity[i];
+                    velocity[i] = momentum *  velocity[i] - learning_rate * gradient[i] ;
+                    wfParams[i] += velocity[i];
                 }
 
             }

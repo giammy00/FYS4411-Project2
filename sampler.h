@@ -21,7 +21,6 @@ public:
     void computeAverages();
     double getEnergy() { return m_energy; }
     std::vector<double> computeGradientEtrial();
-    std::vector<std::vector<double>> computeGradientTerms( std::vector<double> dPhi_dParams, double Elocal );
     void initiateFile(std::string filename);
     void writeToFile(std::string filename);
 

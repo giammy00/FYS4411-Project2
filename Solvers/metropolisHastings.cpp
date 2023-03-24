@@ -1,5 +1,7 @@
 #include <memory>
 #include <vector>
+#include <string>
+#include <math.h>
 
 #include "metropolisHastings.h"
 #include "WaveFunctions/wavefunction.h"
@@ -9,6 +11,11 @@
 #include <iostream>
 using std::cout;
 using std::endl;
+
+void testGradient(class WaveFunction& WaveFunction,
+        std::vector<std::unique_ptr<class Particle>>& particles,
+        std::vector<double> force,
+        int index);
 
 MetropolisHastings::MetropolisHastings(std::unique_ptr<class Random> rng)
     : MonteCarlo(std::move(rng))
@@ -50,11 +57,37 @@ bool MetropolisHastings::step(
 
     double hastingsArticle = waveFunction.phiRatio(particles, index, step) * exp(greensDiff/(2*dt));
 
+    // For testing:
+    // testGradient(waveFunction, particles, force, index);
+    // waveFunction.evaluate(particles);
+
     if(m_rng->nextDouble()<(hastingsArticle)){
-        //updating the cached r^2 in simple gaussian
-        waveFunction.updateCachedVariables(particles[index]->getPosition(), step);
+        waveFunction.adjustPosition(particles, index, step);
         particles[index]->adjustPosition(step);
+        // For testing:
+        // cout << "Moved:" << endl;
+        // testGradient(waveFunction, particles, forceY, index);
+        // cout << "End moved" << endl;
         return true;
     }
     return false;
+}
+
+void testGradient(class WaveFunction& WaveFunction,
+        std::vector<std::unique_ptr<class Particle>>& particles,
+        std::vector<double> force,
+        int index)
+{
+    double dx = 1e-3, phiPlus, phiMinus, grad, phi = WaveFunction.evaluate(particles), norm=0;
+    for (unsigned int dim = 0; dim < force.size(); dim++)
+        norm += force[dim]*force[dim];
+    for (unsigned int dim = 0; dim < force.size(); dim++){
+        particles[index]->adjustPosition(dx, dim);
+        phiPlus = WaveFunction.evaluate(particles);
+        particles[index]->adjustPosition(-2*dx, dim);
+        phiMinus = WaveFunction.evaluate(particles);
+        particles[index]->adjustPosition(dx, dim);
+        grad = (phiPlus-phiMinus)/(2*dx*phi);
+        cout << "Grad Error = " << abs(grad-force[dim]) << "    \t Rel Grad Error = " << (abs(grad-force[dim]))/norm << endl;
+    }
 }

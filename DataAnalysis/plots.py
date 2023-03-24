@@ -42,8 +42,12 @@ def plot_E_alpha_Ndim(data, dims=[3]):
 
     return fig, axs
 if __name__ == '__main__':
-    # import output.txt from simulation as a Pandas dataframe
-    data = pd.read_csv("Outputs/output.txt", sep="\t")
-    dims = [1,2,3]
-    fig, axs = plot_E_alpha_Ndim(data, dims=dims)
-    plt.show()
+#     # import output.txt from simulation as a Pandas dataframe
+#     data = pd.read_csv("Outputs/output.txt", sep="\t")
+#     dims = [1,2,3]
+#     fig, axs = plot_E_alpha_Ndim(data, dims=dims)
+#     plt.show()
+
+    data = np.genfromtxt("Outputs/output.txt", float, "#", "\t")
+    plt.plot(data[:,6], data[:,9])
+    plt.savefig("test.png")
