@@ -4,9 +4,9 @@
 
 #include "wavefunction.h"
 
-class SimpleGaussian : public WaveFunction {
+class SimpleGaussian3D : public WaveFunction {
 public:
-    SimpleGaussian(double alpha);
+    SimpleGaussian3D(double alpha, double beta);
     
     void InitialisePositions(std::vector<std::unique_ptr<class Particle>>& particles);
     void adjustPosition(std::vector<std::unique_ptr<class Particle>>& particles, int index, std::vector<double> step);

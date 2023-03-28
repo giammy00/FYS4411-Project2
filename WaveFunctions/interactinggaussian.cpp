@@ -291,27 +291,34 @@ void testDoubleDerivative(
     class WaveFunction& waveFunction,
     double nablaAnal){
     
-    //* Numerical calculation
+    // Numerical calculation
     double nabla2 = 0, phi, phi_plus, phi_minus;
     // double phi, phi_plus, phi_minus;
     // nabla2 = 0;
     const double dx = 1e-5, dx2_1 = 1/(dx*dx);
+    std::vector<double> step = std::vector<double>(3,0);
     phi = waveFunction.evaluate(particles);
     for (unsigned int i = 0; i < particles.size(); i++){
         for (unsigned int j = 0; j < particles[i]->getNumberOfDimensions(); j++){
+            step[j] = dx;
+            waveFunction.adjustPosition(particles, i, step);
             particles[i]->adjustPosition(dx, j);
             phi_plus = waveFunction.evaluate(particles);
+            step[j] = -2*dx;
+            waveFunction.adjustPosition(particles, i, step);
             particles[i]->adjustPosition(-2*dx, j);
             phi_minus = waveFunction.evaluate(particles);
+            step[j] = dx;
+            waveFunction.adjustPosition(particles, i, step);
             particles[i]->adjustPosition(dx, j);
+            step[j] = 0;
             
             nabla2 += (phi_plus + phi_minus - 2*phi)*dx2_1;
         }
     }
     nabla2 /= phi;
 
-    std::cout << "Analytical: " << nablaAnal << "   \t Numerical: " << nabla2 << "   \t Rel Diff: " << abs((nabla2-nablaAnal)/nabla2) << std::endl;
-    // This line always closes a multiline comment */
+    std::cout << "Analytical: " << nablaAnal << "   \t Numerical: " << nabla2 << "   \t Rel Diff: " << abs((nabla2-nablaAnal)/nabla2) << "   \t Abs Diff: " << abs(nabla2-nablaAnal) << std::endl;
 }
 
 

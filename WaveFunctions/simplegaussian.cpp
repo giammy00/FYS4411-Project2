@@ -9,14 +9,18 @@
 
 #include <iostream>
 
-SimpleGaussian::SimpleGaussian(double alpha, double beta)
+SimpleGaussian::SimpleGaussian(double alpha)
 {
     assert(alpha > 0); // If alpha == 0 then the wavefunction doesn't go to zero
-    m_numberOfParameters = 2;
-    m_parameters.reserve(2);
+    m_numberOfParameters = 1;
+    m_parameters.reserve(1);
     m_parameters.push_back(alpha);
-    m_parameters.push_back(beta);
 }
+
+void testDoubleDerivative3d(
+    std::vector<std::unique_ptr<class Particle>>& particles,
+    class WaveFunction& waveFunction,
+    double nabla);
 
 void SimpleGaussian::InitialisePositions(std::vector<std::unique_ptr<class Particle>>&){}
 
@@ -34,7 +38,7 @@ double SimpleGaussian::evaluate(std::vector<std::unique_ptr<class Particle>>& pa
         for (unsigned int j = 0; j<position.size(); j++)
             r2 += position[j]*position[j];
     }
-    return exp(m_parameters[0]*r2);
+    return exp(-1*m_parameters[0]*r2);
 }
 
 double SimpleGaussian::computeDoubleDerivative(std::vector<std::unique_ptr<class Particle>>& particles) {
@@ -61,32 +65,9 @@ double SimpleGaussian::computeDoubleDerivative(std::vector<std::unique_ptr<class
     int n = particles.size() * particles[0]->getNumberOfDimensions();
     double nabla2 = 4*m_parameters[0]*m_parameters[0]*r2 - 2*n*m_parameters[0];
 
-    return nabla2;
-    // This line always closes a multiline comment */
-    
-    
-    
-    /* Numerical calculation
-    double nabla2 = 0, phi, phi_plus, phi_minus;
-    // double phi, phi_plus, phi_minus;
-    // nabla2 = 0;
-    const double dx = 1e-5, dx2_1 = 1/(dx*dx); // dx2_1 = 1/(dx*dx)
-    assert(abs(dx2_1 - 1/(dx*dx))<1);
-    phi = evaluate(particles);
-    for (unsigned int i = 0; i < particles.size(); i++){
-        for (unsigned int j = 0; j < particles[i]->getNumberOfDimensions(); j++){
-            particles[i]->adjustPosition(dx, j);
-            phi_plus = evaluate(particles);
-            particles[i]->adjustPosition(-2*dx, j);
-            phi_minus = evaluate(particles);
-            particles[i]->adjustPosition(dx, j);
-            
-            nabla2 += (phi_plus + phi_minus - 2*phi)*dx2_1;
-        }
-    }
+    // testDoubleDerivative3d(particles, *this, nabla2);
 
-    return nabla2/phi;
-    // This line always closes a multiline comment */
+    return nabla2;
 }
 
 
@@ -130,5 +111,5 @@ std::vector<double> SimpleGaussian::getdPhi_dParams(std::vector<std::unique_ptr<
         for (unsigned int j = 0; j<position.size(); j++)
             r2 += position[j]*position[j];
     }
-    return std::vector<double>{-r2, 0};
+    return std::vector<double>{-r2};
 }

@@ -81,13 +81,21 @@ void testGradient(class WaveFunction& WaveFunction,
     double dx = 1e-3, phiPlus, phiMinus, grad, phi = WaveFunction.evaluate(particles), norm=0;
     for (unsigned int dim = 0; dim < force.size(); dim++)
         norm += force[dim]*force[dim];
+    std::vector<double> step = std::vector<double>(force.size(),0);
     for (unsigned int dim = 0; dim < force.size(); dim++){
+        step[dim] = dx;
+        WaveFunction.adjustPosition(particles, index, step);
         particles[index]->adjustPosition(dx, dim);
         phiPlus = WaveFunction.evaluate(particles);
+        step[dim] = -2*dx;
+        WaveFunction.adjustPosition(particles, index, step);
         particles[index]->adjustPosition(-2*dx, dim);
         phiMinus = WaveFunction.evaluate(particles);
+        step[dim] = dx;
+        WaveFunction.adjustPosition(particles, index, step);
         particles[index]->adjustPosition(dx, dim);
         grad = (phiPlus-phiMinus)/(2*dx*phi);
+        step[dim] = 0;
         cout << "Grad Error = " << abs(grad-force[dim]) << "    \t Rel Grad Error = " << (abs(grad-force[dim]))/norm << endl;
     }
 }

@@ -8,9 +8,11 @@
 
 #include "system.h"
 #include "WaveFunctions/simplegaussian.h"
+#include "WaveFunctions/simplegaussian3d.h"
 #include "WaveFunctions/interactinggaussian.h"
 #include "WaveFunctions/interactinggaussian3d.h"
 #include "Hamiltonians/harmonicoscillator.h"
+#include "Hamiltonians/harmonicoscillator3d.h"
 #include "InitialStates/initialstate.h"
 #include "Solvers/metropolis.h"
 #include "Solvers/metropolisHastings.h"
@@ -30,6 +32,7 @@ std::unique_ptr<Sampler> runSimulation(
     unsigned int numberOfMetropolisSteps,
     unsigned int numberOfEquilibrationSteps,
     double omega,
+    double gamma,
     double a_ho,
     std::vector<double> params,
     double stepLength
@@ -43,9 +46,12 @@ std::unique_ptr<Sampler> runSimulation(
     // Construct a unique pointer to a new System
     auto system = std::make_unique<System>(
             // Construct unique_ptr to Hamiltonian
-            std::make_unique<HarmonicOscillator>(omega),
+            // std::make_unique<HarmonicOscillator>(omega),
+            std::make_unique<HarmonicOscillator3D>(omega, gamma),
             // Construct unique_ptr to wave function
-            // std::make_unique<SimpleGaussian>(alpha),
+            // std::make_unique<SimpleGaussian>(params[0]),
+            // std::make_unique<SimpleGaussian3D>(params[0], params[1]),
+            // std::make_unique<InteractingGaussian>(params[0]),
             std::make_unique<InteractingGaussian3D>(params[0], params[1]),
             // Construct unique_ptr to solver, and move rng
             std::make_unique<MetropolisHastings>(std::move(rng)),
@@ -76,31 +82,27 @@ int main() {
     // int seed = 2023;
     
     //hyperparameters for gradient descent:
-    double learning_rate = 1.5E-3;
-    double momentum = 0.2;
+    double learning_rate = 3E-3;
+    double momentum = 0.6;
     //store initial trainable parameters of the wave function
-    std::vector<double> wfParams0 = std::vector<double>{0.3, 0};
     //wfParams is reset to wfParams0 every time a new gradient descent is started
-    std::vector<double> wfParams ;
+    std::vector<double> wfParams, wfParams0 = std::vector<double>{0.45, 2.95};
     int nParams = wfParams0.size();
     //for momentum GD:
     std::vector<double> velocity = std::vector<double>(nParams, 0.0);
     //set a maximum number of iterations for gd
-    unsigned int nMaxIter = 1;
-    unsigned int iterCount;
+    unsigned int iterCount, nMaxIter = 1E3;
     //set tolerance for convergence of gd
-    double energyTol = 1E-6;
-    double energyChange;
-    double oldEnergy, newEnergy; 
+    double energyChange, oldEnergy, newEnergy, energyTol = 1E-10;
 
-    unsigned int numberOfParticles = 1;
-    auto numberOfParticlesArray=std::vector<unsigned int>{100};//{1,10,100,500};
-    unsigned int numberOfMetropolisSteps = (unsigned int) 1E5;
+    double numberOfParticles;
+    auto numberOfParticlesArray=std::vector<unsigned int>{50};//{10,100,500};
+    unsigned int numberOfMetropolisSteps = (unsigned int) 3E5;
     unsigned int numberOfEquilibrationSteps = (unsigned int) 1E4;
     double omega = 1.0; // Oscillator frequency.
+    double gamma = 2.8; // Harmonic Oscillator flatness.
     double a_ho = std::sqrt(1./omega); // Characteristic size of the Harmonic Oscillator
-    // double alpha = 0.5; // Variational parameter.
-    double stepLength = 1E-1; // Metropolis step length.
+    double stepLength = 5E-1; // Metropolis step length.
     stepLength *= a_ho; // Scale the steplength in case of changed omega
     string filename = "Outputs/output.txt";
 
@@ -114,69 +116,68 @@ int main() {
     else
         file_initiated = false;
 
-    #define TIMEING // Comment out turn off timing
+    // #define TIMEING // Comment out turn off timing
     #ifdef TIMEING
     auto times = vector<int>();
     #endif
 
     
-    for (unsigned int numberOfDimensions = 3; numberOfDimensions < 4; numberOfDimensions++){
-        for (unsigned int i = 0; i < numberOfParticlesArray.size(); i++){
-            numberOfParticles = numberOfParticlesArray[i];
-            iterCount=0;
-            energyChange=1; //set to 1 just to enter while loop, should be >= energyTol
-            oldEnergy = 1E7;//to enter while loop twice
-            wfParams=wfParams0;//restart gradient descent.
-            while(  (iterCount<nMaxIter) & (energyChange>=energyTol)   ){
+    for (unsigned int i = 0; i < numberOfParticlesArray.size(); i++){
+        numberOfParticles = numberOfParticlesArray[i];
+        iterCount=0;
+        energyChange=1; //set to 1 just to enter while loop, should be >= energyTol
+        oldEnergy = 1E7;//to enter while loop twice
+        wfParams=wfParams0;//restart gradient descent.
+        while(  (iterCount<nMaxIter) && (energyChange>=energyTol)   ){
 
-                #ifdef TIMEING
-                using std::chrono::high_resolution_clock;
-                using std::chrono::duration_cast;
-                using std::chrono::duration;
-                using std::chrono::milliseconds;
-                auto t1 = high_resolution_clock::now();
-                #endif
-                
-                auto sampler = runSimulation(
-                        numberOfDimensions,
-                        numberOfParticles,
-                        numberOfMetropolisSteps,
-                        numberOfEquilibrationSteps,
-                        omega,
-                        a_ho,
-                        wfParams, //I assumed that wave function will take a std::vector<double> of params to be initialized
-                        stepLength);
-                
+            #ifdef TIMEING
+            using std::chrono::high_resolution_clock;
+            using std::chrono::duration_cast;
+            using std::chrono::duration;
+            using std::chrono::milliseconds;
+            auto t1 = high_resolution_clock::now();
+            #endif
+            
+            auto sampler = runSimulation(
+                    3,
+                    numberOfParticles,
+                    numberOfMetropolisSteps,
+                    numberOfEquilibrationSteps,
+                    omega,
+                    gamma,
+                    a_ho,
+                    wfParams, //I assumed that wave function will take a std::vector<double> of params to be initialized
+                    stepLength);
+            
 
-                #ifdef TIMEING
-                auto t2 = high_resolution_clock::now();
-                /* Getting number of milliseconds as an integer. */
-                auto ms_int = duration_cast<milliseconds>(t2 - t1);
-                times.push_back(ms_int.count());
-                #endif
+            #ifdef TIMEING
+            auto t2 = high_resolution_clock::now();
+            /* Getting number of milliseconds as an integer. */
+            auto ms_int = duration_cast<milliseconds>(t2 - t1);
+            times.push_back(ms_int.count());
+            #endif
 
-                if(!file_initiated){
-                    sampler->initiateFile(filename);
-                    file_initiated = true;
-                }
-                sampler->writeToFile(filename);
-                // Output information from the simulation
-                sampler->printOutputToTerminalShort();
-                
-                newEnergy = sampler->getEnergy();
-                energyChange = fabs(oldEnergy-newEnergy);
-                oldEnergy = newEnergy;
-
-                //sampler computes gradient 
-                std::vector<double> gradient = sampler->computeGradientEtrial();
-
-                //update parameters using momentum gd
-                for(int i=0; i<nParams; i++){
-                    velocity[i] = momentum *  velocity[i] - learning_rate * gradient[i] ;
-                    wfParams[i] += velocity[i];
-                }
-
+            if(!file_initiated){
+                sampler->initiateFile(filename);
+                file_initiated = true;
             }
+            sampler->writeToFile(filename);
+            // Output information from the simulation
+            sampler->printOutputToTerminalShort();
+            
+            newEnergy = sampler->getEnergy();
+            energyChange = fabs(oldEnergy-newEnergy);
+            oldEnergy = newEnergy;
+
+            //sampler computes gradient 
+            std::vector<double> gradient = sampler->computeGradientEtrial();
+
+            //update parameters using momentum gd
+            for(int i=0; i<nParams; i++){
+                velocity[i] = momentum *  velocity[i] - learning_rate * gradient[i] ;
+                wfParams[i] += velocity[i];
+            }
+            iterCount++;
         }
     }
     #ifdef TIMEING
