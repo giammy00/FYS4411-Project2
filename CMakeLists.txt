@@ -15,14 +15,17 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Debug)
 endif()
 
+#check if openMP is present:
+find_package(OpenMP REQUIRED)
+
 # Add all compiler warnings. Remember, a warning in C++ can very often lead to a bug
 # later on so _fix your warnings!_
-set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -fopenmp")
 # Add debugging flag for tools such as gdb and valgrind.
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 # Add full compiler optimization when in the release build type. Other options include
 # -O0, -O1, -O2.
-# set(CMAKE_CXX_FLAGS_RELEASE "-O1 -fopt-info")
+#set(CMAKE_CXX_FLAGS_RELEASE "-O0 -fopt-info")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 # Add directories containing header-files
