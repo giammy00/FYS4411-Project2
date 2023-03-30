@@ -24,12 +24,8 @@ SamplerFineTune::SamplerFineTune( unsigned int numberOfParticles,
     m_outBinaryFile.open(fname_thread, std::ios::binary);
 }
 
-void Sampler::equilibrationSample(bool acceptedStep){
-    m_equilibrationStepNumber++;
-    m_numberOfAcceptedEquilibrationSteps += acceptedStep;
-}
 
-void Sampler::sample(bool acceptedStep, System* system) {
+void SamplerFineTune::sample(bool acceptedStep, System* system) {
     /*sample all the interesting things 
      */
     double localEnergy = system->computeLocalEnergy();
