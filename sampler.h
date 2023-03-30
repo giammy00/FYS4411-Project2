@@ -10,7 +10,7 @@ public:
         unsigned int numberOfDimensions,
         int numberOfWFParams
         );
-    // Sampler(std::vector<Sampler> samplers);
+    Sampler(std::vector<std::unique_ptr< class Sampler> >  & samplers);
 
 
     void sample(bool acceptedStep, class System* system);
@@ -19,12 +19,22 @@ public:
     void printOutputToTerminal();
     void printOutputToTerminalShort();
     void computeAverages();
+    //implement getters to combine results and print them to terminal/file
     double getEnergy() { return m_energy; }
+    double getEnergy2(){ return m_energy2; }
+    std::vector<std::vector<double>> getGradientTerms(){ return m_gradientTerms;}
+    int getNSteps(){ return m_stepNumber ;}
+    int getNStepsEq(){ return m_equilibrationStepNumber;}
+    int getNAccSteps(){ return m_numberOfAcceptedSteps;}
+    int getNAccStepsEq(){ return m_numberOfAcceptedEquilibrationSteps;}
+    int getNdim(){ return m_numberOfDimensions; }
+    std::vector<double>  getWFparams(){ return m_waveFunctionParameters; }
+    int getNparticles(){return m_numberOfParticles;}
+
     std::vector<double> computeGradientEtrial();
     void initiateFile(std::string filename);
     void writeToFile(std::string filename);
-
-private:
+protected:
     unsigned int m_stepNumber = 0;
     unsigned int m_equilibrationStepNumber = 0;
     unsigned int m_numberOfParticles = 0;
@@ -41,5 +51,4 @@ private:
     std::vector<std::vector<double>> m_gradientTerms;
     //compute the gradient of the trial energy wrt variational parameters
     std::vector<double> m_waveFunctionParameters;
-
 };

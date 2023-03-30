@@ -9,84 +9,43 @@
 #include "particle.h"
 #include "Hamiltonians/hamiltonian.h"
 #include "WaveFunctions/wavefunction.h"
+#include "samplerFineTune.h"
 
 using std::cout;
 using std::endl;
 
 
-Sampler::Sampler(
-        unsigned int numberOfParticles,
-        unsigned int numberOfDimensions,
-        int numberOfWFParams
-        )
-{
-    m_numberOfParticles = numberOfParticles;
-    m_numberOfDimensions = numberOfDimensions;
-    m_cumulativeGradientTerms = std::vector<std::vector<double>>(numberOfWFParams, std::vector<double>(2, 0.0)) ;
-    m_gradientTerms = std::vector<std::vector<double>>(numberOfWFParams, std::vector<double>(2, 0.0)) ;
+SamplerFineTune::SamplerFineTune( unsigned int numberOfParticles,
+    unsigned int numberOfDimensions,
+    int numberOfWFParams,
+    int thread_number) : Sampler::Sampler(numberOfParticles, numberOfDimensions, numberOfWFParams)
+    {
+    std::string fname_thread = "./Outputs/sampledEnergies_" + std::to_string(thread_number) + ".bin";
+    m_outBinaryFile.open(fname_thread, std::ios::binary);
 }
 
-Sampler::Sampler(std::vector<std::unique_ptr< class Sampler>  >  & samplers){  
-    //combine the results from all samplers.
-    //note: we assume that  every sampler has sampled for the SAME number of steps. 
-    //otherwise we would need a weighted average
-    
-    int numberOfWFParams = samplers[0]->getGradientTerms().size();
-    m_numberOfDimensions = samplers[0]->getNdim();
-    m_waveFunctionParameters = samplers[0]->getWFparams();
-    m_numberOfParticles = samplers[0]->getNparticles();
-    m_gradientTerms = std::vector<std::vector<double>>(numberOfWFParams, std::vector<double>(2, 0.0)) ;
-    int Nparams = m_gradientTerms.size();
-    int Nsamplers = samplers.size();
-    for(auto& sampler : samplers){
-        //sum sampled energy
-        m_energy += sampler->getEnergy();
-        m_energy2+= sampler->getEnergy2();
-        //sum accepted nr. of steps
-        m_stepNumber += sampler->getNSteps();
-        m_numberOfAcceptedSteps+= sampler->getNAccSteps();
-        m_equilibrationStepNumber+=  sampler->getNStepsEq();
-        m_numberOfAcceptedEquilibrationSteps+= sampler->getNAccStepsEq();
-        //sum sampled gradients
-        std::vector<std::vector<double>> cur_gradient = sampler->getGradientTerms();
-        for(int j=0; j<Nparams; j++){
-            for(int k=0; k<2; k++){
-                m_gradientTerms[j][k]+=cur_gradient[j][k];
-            }
-        }
-    }
-    //obtain averages
-    m_energy/=Nsamplers;
-    m_energy2/=Nsamplers;
-    for(int j=0; j<Nparams; j++){
-        for(int k=0; k<2; k++){
-            m_gradientTerms[j][k]/=Nsamplers;
-        }
-    }
-}
 
-void Sampler::equilibrationSample(bool acceptedStep){
-    m_equilibrationStepNumber++;
-    m_numberOfAcceptedEquilibrationSteps += acceptedStep;
-}
-
-void Sampler::sample(bool acceptedStep, System* system) {
+void SamplerFineTune::sample(bool acceptedStep, System* system) {
     /*sample all the interesting things 
      */
     double localEnergy = system->computeLocalEnergy();
     m_cumulativeEnergy  += localEnergy;
     m_cumulativeEnergy2 += localEnergy * localEnergy;
 
-    //sample quantities for gradient computation
-    std::vector<double> currentDerivatives =  system->getdPhi_dParams();
+    // //sample quantities for gradient computation
+    // std::vector<double> currentDerivatives =  system->getdPhi_dParams();
 
-    //update each of the rowas adding current sampled quantity
-    for(unsigned int i=0; i<currentDerivatives.size();i++){
-        m_cumulativeGradientTerms[i][0]+=currentDerivatives[i];
-        m_cumulativeGradientTerms[i][1]+=currentDerivatives[i]*localEnergy;
-    }
+    // //update each of the rowas adding current sampled quantity
+    // for(unsigned int i=0; i<currentDerivatives.size();i++){
+    //     m_cumulativeGradientTerms[i][0]+=currentDerivatives[i];
+    //     m_cumulativeGradientTerms[i][1]+=currentDerivatives[i]*localEnergy;
+    // }
     m_stepNumber++;
     m_numberOfAcceptedSteps += acceptedStep;
+
+    //write sampled energy to a file
+    m_outBinaryFile.write(reinterpret_cast<const char*>(&localEnergy), sizeof(double));
+
 }
 
 void Sampler::transferWaveFunctionParameters(std::vector<double> parameters){
@@ -142,10 +101,10 @@ void Sampler::printOutputToTerminalShort() {
     cout << " Energy : " << m_energy << endl;
     cout << " Variance in the energy : " << m_energy2 - m_energy * m_energy << endl;
     cout << " Gradient of the variational parameters: ";
-    for (unsigned int i=0; i < grad.size(); i++) {
-        cout << grad[i] << '\t';
-    }
-    cout << endl << endl;
+    // for (unsigned int i=0; i < grad.size(); i++) {
+    //     cout << grad[i] << '\t';
+    // }
+    // cout << endl << endl;
 }
 
 void Sampler::computeAverages() {

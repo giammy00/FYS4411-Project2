@@ -2,7 +2,6 @@
 #include <memory>
 #include <cassert>
 // #include <bits/stdc++.h>
-
 #include "system.h"
 #include "sampler.h"
 #include "particle.h"
@@ -34,10 +33,10 @@ std::unique_ptr<class Sampler> System::runEquilibrationSteps(
         unsigned int numberOfEquilibrationSteps)
 {
     auto sampler = std::make_unique<Sampler>(
-            m_numberOfParticles,
-            m_numberOfDimensions, 
-            m_waveFunction->getNumberOfParameters()
-            );
+        m_numberOfParticles,
+        m_numberOfDimensions, 
+        m_waveFunction->getNumberOfParameters()
+        );
 
     for (unsigned int i = 0; i < numberOfEquilibrationSteps; i++) {
         sampler->equilibrationSample(m_solver->step(stepLength, *m_waveFunction, m_particles));

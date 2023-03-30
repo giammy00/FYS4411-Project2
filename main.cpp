@@ -20,6 +20,7 @@
 #include "particle.h"
 #include "sampler.h"
 using namespace std;
+#include"omp.h"
 
 /*
 h-bar = 1
@@ -63,17 +64,12 @@ std::unique_ptr<Sampler> runSimulation(
     auto sampler = system->runEquilibrationSteps(
             stepLength,
             numberOfEquilibrationSteps);
-    
+
     // Run the Metropolis algorithm
     sampler = system->runMetropolisSteps(
             std::move(sampler),
             stepLength,
             numberOfMetropolisSteps);
-    
-    //here should call sampler->computeGradientEtrial()
-    // here also print info about current energy and variational parameter (move from main)
-    // then compute optimizer->step()
-
 
     return sampler;
 }
@@ -104,6 +100,7 @@ int main() {
     double a_ho = std::sqrt(1./omega); // Characteristic size of the Harmonic Oscillator
     double stepLength = 5E-1; // Metropolis step length.
     stepLength *= a_ho; // Scale the steplength in case of changed omega
+
     string filename = "Outputs/output.txt";
 
     //check if file already exists, if so, set file_initiated to true (avoid printing header line over and over in outputs.txt)
@@ -115,6 +112,7 @@ int main() {
     }
     else
         file_initiated = false;
+                            
 
     // #define TIMEING // Comment out turn off timing
     #ifdef TIMEING
@@ -128,8 +126,13 @@ int main() {
         energyChange=1; //set to 1 just to enter while loop, should be >= energyTol
         oldEnergy = 1E7;//to enter while loop twice
         wfParams=wfParams0;//restart gradient descent.
-        while(  (iterCount<nMaxIter) && (energyChange>=energyTol)   ){
 
+        int NUM_THREADS = omp_get_max_threads();
+        cout << "Using " << NUM_THREADS << " threads." << endl;
+        std::vector< std::unique_ptr< class Sampler > > samplers(NUM_THREADS);
+
+        while(  (iterCount<nMaxIter) && (energyChange>=energyTol)   ){
+            
             #ifdef TIMEING
             using std::chrono::high_resolution_clock;
             using std::chrono::duration_cast;
@@ -138,8 +141,15 @@ int main() {
             auto t1 = high_resolution_clock::now();
             #endif
             
+            ///////////////////////////////////////////////
+            ///// START PARALLEL REGION //////////////////
+            ///////////////////////////////////////////////
+            
+            #pragma omp parallel
+            {
+            int thread_number = omp_get_thread_num();
             auto sampler = runSimulation(
-                    3,
+                    3,//dimensions of our simulation
                     numberOfParticles,
                     numberOfMetropolisSteps,
                     numberOfEquilibrationSteps,
@@ -148,7 +158,11 @@ int main() {
                     a_ho,
                     wfParams, //I assumed that wave function will take a std::vector<double> of params to be initialized
                     stepLength);
-            
+            samplers[thread_number]= std::move(sampler);
+            }
+            ///////////////////////////////////////////////
+            ///// END PARALLEL REGION //////////////////
+            ///////////////////////////////////////////////
 
             #ifdef TIMEING
             auto t2 = high_resolution_clock::now();
@@ -157,20 +171,24 @@ int main() {
             times.push_back(ms_int.count());
             #endif
 
+            //gather all simulation results in one sampler
+            std::unique_ptr< class Sampler > collective_sampler = std::make_unique< class Sampler >( samplers );
+            //write to file
             if(!file_initiated){
-                sampler->initiateFile(filename);
+                collective_sampler->initiateFile(filename);
                 file_initiated = true;
             }
-            sampler->writeToFile(filename);
-            // Output information from the simulation
-            sampler->printOutputToTerminalShort();
-            
-            newEnergy = sampler->getEnergy();
+            collective_sampler->writeToFile(filename);            
+            //write to terminal:
+            collective_sampler->printOutputToTerminalShort();
+
+            //compute energy difference
+            newEnergy = collective_sampler->getEnergy();
             energyChange = fabs(oldEnergy-newEnergy);
             oldEnergy = newEnergy;
 
             //sampler computes gradient 
-            std::vector<double> gradient = sampler->computeGradientEtrial();
+            std::vector<double> gradient = collective_sampler->computeGradientEtrial();
 
             //update parameters using momentum gd
             for(int i=0; i<nParams; i++){
