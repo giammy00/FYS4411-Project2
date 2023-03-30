@@ -1,0 +1,14 @@
+learning_rate=
+momentum=
+alpha=
+beta=
+gamma=
+nMaxIter=
+energyTol=
+calculateGradients=
+numberOfParticles=
+numberOfMetropolisSteps=
+numberOfEquilibrationSteps=
+omega=
+stepLength=
+filename=
