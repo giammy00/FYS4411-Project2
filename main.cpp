@@ -5,6 +5,7 @@
 #include <math.h>
 #include <chrono>
 #include <string>
+#include <nlopt.hpp>
 
 #include "system.h"
 #include "WaveFunctions/simplegaussian.h"
@@ -27,6 +28,15 @@ h-bar = 1
 m = 1
 omega = 1
 */
+double myfunc(const std::vector<double> &x, std::vector<double> &grad, void *my_func_data) {
+    // Define the function to be minimized
+    double result = pow(x[0] - 1, 2) + pow(x[1] - 2, 2);
+    // Calculate the gradient
+    grad[0] = 2 * (x[0] - 1);
+    grad[1] = 2 * (x[1] - 2);
+    return result;
+}
+
 std::unique_ptr<Sampler> runSimulation(
     unsigned int numberOfDimensions,
     unsigned int numberOfParticles,
