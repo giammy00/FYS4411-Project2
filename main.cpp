@@ -64,15 +64,12 @@ std::unique_ptr<Sampler> runSimulation(
     auto sampler = system->runEquilibrationSteps(
             stepLength,
             numberOfEquilibrationSteps);
-    
+
     // Run the Metropolis algorithm
     sampler = system->runMetropolisSteps(
             std::move(sampler),
             stepLength,
             numberOfMetropolisSteps);
-
-
-    cout << __LINE__ << endl;
 
     return sampler;
 }
@@ -130,7 +127,8 @@ int main() {
         oldEnergy = 1E7;//to enter while loop twice
         wfParams=wfParams0;//restart gradient descent.
 
-        int NUM_THREADS = omp_get_num_threads();
+        int NUM_THREADS = omp_get_max_threads();
+        cout << "Using " << NUM_THREADS << " threads." << endl;
         std::vector< std::unique_ptr< class Sampler > > samplers(NUM_THREADS);
 
         while(  (iterCount<nMaxIter) && (energyChange>=energyTol)   ){
@@ -160,15 +158,8 @@ int main() {
                     a_ho,
                     wfParams, //I assumed that wave function will take a std::vector<double> of params to be initialized
                     stepLength);
-            #pragma omp critical
-            {
-                samplers[thread_number]= std::move(sampler);
-                cout << thread_number << "manged to store." << endl;
-            }            
-            cout << __LINE__ << endl;
-
+            samplers[thread_number]= std::move(sampler);
             }
-
             ///////////////////////////////////////////////
             ///// END PARALLEL REGION //////////////////
             ///////////////////////////////////////////////

@@ -32,14 +32,6 @@ std::unique_ptr<class Sampler> System::runEquilibrationSteps(
         double stepLength,
         unsigned int numberOfEquilibrationSteps)
 {
-    // #ifdef USE_PARALLEL
-    // auto sampler = std::make_unique<Sampler>(
-    //         m_numberOfParticles,
-    //         m_numberOfDimensions, 
-    //         m_waveFunction->getNumberOfParameters(), 
-    //         omp_get_thread_num()
-    //         );
-    // #else
     auto sampler = std::make_unique<Sampler>(
         m_numberOfParticles,
         m_numberOfDimensions, 
