@@ -22,44 +22,96 @@
 #include "sampler.h"
 using namespace std;
 #include"omp.h"
-
 /*
 h-bar = 1
 m = 1
 omega = 1
 */
-double myfunc(const std::vector<double> &x, std::vector<double> &grad, void *my_func_data) {
-    // Define the function to be minimized
-    double result = pow(x[0] - 1, 2) + pow(x[1] - 2, 2);
-    // Calculate the gradient
-    grad[0] = 2 * (x[0] - 1);
-    grad[1] = 2 * (x[1] - 2);
-    return result;
+//define a struct as a container of simulation params.
+struct simulationParams{
+    unsigned int numberOfDimensions;
+    unsigned int numberOfParticles;
+    unsigned int numberOfMetropolisSteps;
+    unsigned int numberOfEquilibrationSteps;
+    bool calculateGradients;
+    double omega;
+    double gamma;
+    double a_ho;
+    double stepLength;
+    string filename;
+};
+typedef struct simulationParams SimulationParams;
+
+double wrapSimulation(const std::vector<double> &params, std::vector<double> &grad, SimulationParams P) {
+    //wraps the runSimulation function so that it can be used with nlopt library  
+    //check if output file already exists, if so, 
+    //set file_initiated to true (avoid printing header line over and over in outputs.txt)
+    //just to handle the .txt easier to handle.
+    bool file_initiated;
+    if( FILE * fptr  = fopen(P.filename.c_str(),"r") ){
+        fclose(fptr);
+        file_initiated = true;
+    }
+    else
+        file_initiated = false;
+    int NUM_THREADS = omp_get_max_threads();
+    cout << "Using " << NUM_THREADS << " threads." << endl;
+    std::vector< std::unique_ptr< class Sampler >> samplers(NUM_THREADS);
+
+    ///////////////////////////////////////////////
+    ///// START PARALLEL REGION //////////////////
+    ///////////////////////////////////////////////
+    
+    #pragma omp parallel
+    {
+        int thread_number = omp_get_thread_num();
+        auto sampler = runSimulation(
+                P,
+                params //params to init wavefunction
+                );
+        samplers[thread_number]= std::move(sampler);
+    }
+    ///////////////////////////////////////////////
+    ///// END PARALLEL REGION //////////////////
+    ///////////////////////////////////////////////
+
+
+    //gather all simulation results in one sampler
+    std::unique_ptr< class Sampler > collective_sampler = std::make_unique< class Sampler >( samplers );
+    //write to file
+    if(!file_initiated){
+        collective_sampler->initiateFile(P.filename);
+        file_initiated = true;
+    }
+    collective_sampler->writeToFile(P.filename);            
+    //write to terminal:
+    collective_sampler->printOutputToTerminalShort();
+
+    //compute energy difference
+    double energy = collective_sampler->getEnergy();
+
+
+    //sampler computes gradient 
+    grad = collective_sampler->computeGradientEtrial();
+
+    return energy
 }
 
 std::unique_ptr<Sampler> runSimulation(
-    unsigned int numberOfDimensions,
-    unsigned int numberOfParticles,
-    unsigned int numberOfMetropolisSteps,
-    unsigned int numberOfEquilibrationSteps,
-    bool calculateGradients,
-    double omega,
-    double gamma,
-    double a_ho,
-    std::vector<double> params,
-    double stepLength
+    SimulationParams P,
+    std::vector<double> params
 ){
     int seed = 2023;
     // The random engine can also be built without a seed
     auto rng = std::make_unique<Random>(seed);
     // Initialize particles
     // auto particles = setupNonOverlappingGaussianInitialState(numberOfDimensions, numberOfParticles, *rng, a_ho);
-    auto particles = setupNonOverlappingGaussianInitialState(numberOfDimensions, numberOfParticles, *rng, a_ho);
+    auto particles = setupNonOverlappingGaussianInitialState(P.numberOfDimensions, P.numberOfParticles, *rng, P.a_ho);
     // Construct a unique pointer to a new System
     auto system = std::make_unique<System>(
             // Construct unique_ptr to Hamiltonian
             // std::make_unique<HarmonicOscillator>(omega),
-            std::make_unique<HarmonicOscillator3D>(omega, gamma),
+            std::make_unique<HarmonicOscillator3D>(P.omega, P.gamma),
             // Construct unique_ptr to wave function
             // std::make_unique<SimpleGaussian>(params[0]),
             // std::make_unique<SimpleGaussian3D>(params[0], params[1]),
@@ -70,18 +122,18 @@ std::unique_ptr<Sampler> runSimulation(
             // std::make_unique<Metropolis>(std::move(rng)),
             // Move the vector of particles to system
             std::move(particles),
-            calculateGradients);
+            P.calculateGradients);
     
     // Run steps to equilibrate particles
     auto sampler = system->runEquilibrationSteps(
-            stepLength,
-            numberOfEquilibrationSteps);
+            P.stepLength,
+            P.numberOfEquilibrationSteps);
 
     // Run the Metropolis algorithm
     sampler = system->runMetropolisSteps(
             std::move(sampler),
-            stepLength,
-            numberOfMetropolisSteps);
+            P.stepLength,
+            P.numberOfMetropolisSteps);
 
     return sampler;
 }
@@ -94,6 +146,8 @@ int main(int argc, char *argv[]) {
     //store initial trainable parameters of the wave function
     //wfParams is reset to wfParams0 every time a new gradient descent is started
     std::vector<double> wfParams = std::vector<double>{0.5, 1.};
+    //define gradient placeholder, to which the gradient will be written
+    std::vector<double> gradient = std::vector<double>(wfParams.size());
     //for momentum GD:
     std::vector<double> velocity = std::vector<double>(wfParams.size(), 0.0);
     //set a maximum number of iterations for gd
@@ -102,16 +156,7 @@ int main(int argc, char *argv[]) {
     double energyChange, oldEnergy, newEnergy, energyTol = 1E-7;
     bool calculateGradients = true;
 
-    double numberOfParticles = 10;
-    unsigned int numberOfMetropolisSteps = (unsigned int) 3E4;
-    unsigned int numberOfEquilibrationSteps = (unsigned int) 1E3;
-    double omega = 1.; // Oscillator frequency.
-    double gamma = 1.; // Harmonic Oscillator flatness.
-    double stepLength = 5E-1; // Metropolis step length.
-
-    string filename = "Outputs/output.txt";
-
-
+    SimulationParams simPar ;
     if (argc > 1){
         // Input filename from command line
         std::string input_filename = argv[1];
@@ -147,7 +192,7 @@ int main(int argc, char *argv[]) {
             else if (name == "beta")
             {wfParams[1] = std::stod(value);}
             else if (name == "gamma")
-            {gamma = std::stod(value);}
+            {simPar.gamma = std::stod(value);}
             else if (name == "nMaxIter")
             {nMaxIter = std::stoi(value);}
             else if (name == "energyTol")
@@ -155,17 +200,17 @@ int main(int argc, char *argv[]) {
             else if (name == "calculateGradients")
             {calculateGradients = (bool)std::stoi(value);}
             else if (name == "numberOfParticles")
-            {numberOfParticles = std::stoi(value);}
+            {simPar.numberOfParticles = std::stoi(value);}
             else if (name == "numberOfMetropolisSteps")
-            {numberOfMetropolisSteps = std::stoi(value);}
+            {simPar.numberOfMetropolisSteps = std::stoi(value);}
             else if (name == "numberOfEquilibrationSteps")
-            {numberOfEquilibrationSteps = std::stoi(value);}
+            {simPar.numberOfEquilibrationSteps = std::stoi(value);}
             else if (name == "omega")
-            {omega = std::stod(value);}
+            {simPar.omega = std::stod(value);}
             else if (name == "stepLength")
-            {stepLength = std::stod(value);}
+            {simPar.stepLength = std::stod(value);}
             else if (name == "filename")
-            {filename = "Outputs/" + value;}
+            {simPar.filename = "Outputs/" + value;}
             else
             {
                 std::cout << "Error reading file" << std::endl;
@@ -176,93 +221,41 @@ int main(int argc, char *argv[]) {
     else{
         std::cout << "WARNING: No settings file provided" << std::endl;
     }
-    double a_ho = std::sqrt(1./omega); // Characteristic size of the Harmonic Oscillator
-    stepLength *= a_ho; // Scale the steplength in case of changed omega
 
-    //check if file already exists, if so, set file_initiated to true (avoid printing header line over and over in outputs.txt)
-    //just to handle the .txt easier to handle.
-    bool file_initiated;
-    if( FILE * fptr  = fopen(filename.c_str(),"r") ){
-        fclose(fptr);
-        file_initiated = true;
-    }
-    else
-        file_initiated = false;
-                            
+    //DEFINE SIMULATION PARAMETERS
+    //NO GRADIENT DESCENT PARAMETERS HERE,
+    //NOT EVEN THE TRAINABLE PARAMS of the WF.
 
-    // #define TIMEING // Comment out turn off timing
+    simPar.numberOfDimensions=3;
+    simPar.numberOfParticles=10;//50; 100
+    simPar.numberOfMetropolisSteps=3E4;
+    simPar.numberOfEquilibrationSteps=1E3;
+    simPar.calculateGradients=true;
+    simPar.omega=1;
+    simPar.gamma=1;
+    simPar.stepLength=5E-1;
+    simPar.filename="Outputs/output.txt";
+    simPar.a_ho = std::sqrt(1./simPar.omega); // Characteristic size of the Harmonic Oscillator
+    simPar.stepLength *= simPar.a_ho; // Scale the steplength in case of changed omega            
+
+    //#define TIMEING // Comment out turn off timing
     #ifdef TIMEING
     auto times = vector<int>();
+    using std::chrono::high_resolution_clock;
+    using std::chrono::duration_cast;
+    using std::chrono::duration;
+    using std::chrono::milliseconds;
+    auto t1 = high_resolution_clock::now();
     #endif
 
     iterCount=0;
     energyChange=1; //set to 1 just to enter while loop, should be >= energyTol
     oldEnergy = 1E7;//to enter while loop twice
-
-    int NUM_THREADS = omp_get_max_threads();
-    cout << "Using " << NUM_THREADS << " threads." << endl;
-    std::vector< std::unique_ptr< class Sampler > > samplers(NUM_THREADS);
-
-    while(  (iterCount<nMaxIter) && (energyChange>=energyTol)   ){
-        
-        #ifdef TIMEING
-        using std::chrono::high_resolution_clock;
-        using std::chrono::duration_cast;
-        using std::chrono::duration;
-        using std::chrono::milliseconds;
-        auto t1 = high_resolution_clock::now();
-        #endif
-        
-        ///////////////////////////////////////////////
-        ///// START PARALLEL REGION //////////////////
-        ///////////////////////////////////////////////
-        
-        #pragma omp parallel
-        {
-            int thread_number = omp_get_thread_num();
-            auto sampler = runSimulation(
-                    3,//dimensions of our simulation
-                    numberOfParticles,
-                    numberOfMetropolisSteps,
-                    numberOfEquilibrationSteps,
-                    calculateGradients,
-                    omega,
-                    gamma,
-                    a_ho,
-                    wfParams, //I assumed that wave function will take a std::vector<double> of params to be initialized
-                    stepLength);
-            samplers[thread_number]= std::move(sampler);
-        }
-        ///////////////////////////////////////////////
-        ///// END PARALLEL REGION //////////////////
-        ///////////////////////////////////////////////
-
-        #ifdef TIMEING
-        auto t2 = high_resolution_clock::now();
-        /* Getting number of milliseconds as an integer. */
-        auto ms_int = duration_cast<milliseconds>(t2 - t1);
-        times.push_back(ms_int.count());
-        #endif
-
-        //gather all simulation results in one sampler
-        std::unique_ptr< class Sampler > collective_sampler = std::make_unique< class Sampler >( samplers );
-        //write to file
-        if(!file_initiated){
-            collective_sampler->initiateFile(filename);
-            file_initiated = true;
-        }
-        collective_sampler->writeToFile(filename);            
-        //write to terminal:
-        collective_sampler->printOutputToTerminalShort();
-
-        //compute energy difference
-        newEnergy = collective_sampler->getEnergy();
+    while(  (iterCount<nMaxIter) && (energyChange>=energyTol)   )
+    {
+        newEnergy = wrapSimulation(wfParams, gradient, simPar);
         energyChange = fabs(oldEnergy-newEnergy);
         oldEnergy = newEnergy;
-
-        //sampler computes gradient 
-        std::vector<double> gradient = collective_sampler->computeGradientEtrial();
-
         //update parameters using momentum gd
         for(unsigned int i=0; i<gradient.size(); i++){
             velocity[i] = momentum *  velocity[i] - learning_rate * gradient[i] ;
@@ -270,6 +263,12 @@ int main(int argc, char *argv[]) {
         }
         iterCount++;
     }
+    #ifdef TIMEING
+    auto t2 = high_resolution_clock::now();
+    /* Getting number of milliseconds as an integer. */
+    auto ms_int = duration_cast<milliseconds>(t2 - t1);
+    times.push_back(ms_int.count());
+    #endif
     #ifdef TIMEING
     cout << "times : " << endl;
     for(unsigned int i = 0; i<times.size(); i++)
