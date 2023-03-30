@@ -87,14 +87,14 @@ int main() {
     //for momentum GD:
     std::vector<double> velocity = std::vector<double>(nParams, 0.0);
     //set a maximum number of iterations for gd
-    unsigned int iterCount, nMaxIter = 1E3;
+    unsigned int iterCount, nMaxIter = 1E0;
     //set tolerance for convergence of gd
     double energyChange, oldEnergy, newEnergy, energyTol = 1E-10;
 
     double numberOfParticles;
     auto numberOfParticlesArray=std::vector<unsigned int>{10};//{10,100,500};
-    unsigned int numberOfMetropolisSteps = (unsigned int) 3E5;
-    unsigned int numberOfEquilibrationSteps = (unsigned int) 1E4;
+    unsigned int numberOfMetropolisSteps = (unsigned int) 3E4;
+    unsigned int numberOfEquilibrationSteps = (unsigned int) 1E3;
     double omega = 1.0; // Oscillator frequency.
     double gamma = 2.8284; // Harmonic Oscillator flatness.
     double a_ho = std::sqrt(1./omega); // Characteristic size of the Harmonic Oscillator
@@ -147,18 +147,18 @@ int main() {
             
             #pragma omp parallel
             {
-            int thread_number = omp_get_thread_num();
-            auto sampler = runSimulation(
-                    3,//dimensions of our simulation
-                    numberOfParticles,
-                    numberOfMetropolisSteps,
-                    numberOfEquilibrationSteps,
-                    omega,
-                    gamma,
-                    a_ho,
-                    wfParams, //I assumed that wave function will take a std::vector<double> of params to be initialized
-                    stepLength);
-            samplers[thread_number]= std::move(sampler);
+                int thread_number = omp_get_thread_num();
+                auto sampler = runSimulation(
+                        3,//dimensions of our simulation
+                        numberOfParticles,
+                        numberOfMetropolisSteps,
+                        numberOfEquilibrationSteps,
+                        omega,
+                        gamma,
+                        a_ho,
+                        wfParams, //I assumed that wave function will take a std::vector<double> of params to be initialized
+                        stepLength);
+                samplers[thread_number]= std::move(sampler);
             }
             ///////////////////////////////////////////////
             ///// END PARALLEL REGION //////////////////
@@ -191,7 +191,7 @@ int main() {
             std::vector<double> gradient = collective_sampler->computeGradientEtrial();
 
             //update parameters using momentum gd
-            for(int i=0; i<nParams; i++){
+            for(unsigned int i=0; i<gradient.size(); i++){
                 velocity[i] = momentum *  velocity[i] - learning_rate * gradient[i] ;
                 wfParams[i] += velocity[i];
             }

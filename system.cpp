@@ -4,6 +4,7 @@
 // #include <bits/stdc++.h>
 #include "system.h"
 #include "sampler.h"
+#include "samplerFineTune.h"
 #include "particle.h"
 #include "WaveFunctions/wavefunction.h"
 #include "Hamiltonians/hamiltonian.h"
@@ -32,7 +33,8 @@ std::unique_ptr<class Sampler> System::runEquilibrationSteps(
         double stepLength,
         unsigned int numberOfEquilibrationSteps)
 {
-    auto sampler = std::make_unique<Sampler>(
+    auto sampler = std::make_unique<SamplerFineTune>(
+    // auto sampler = std::make_unique<Sampler>(
         m_numberOfParticles,
         m_numberOfDimensions, 
         m_waveFunction->getNumberOfParameters()

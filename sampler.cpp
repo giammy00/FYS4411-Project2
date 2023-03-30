@@ -195,12 +195,12 @@ void Sampler::writeToFile(std::string filename){
 //gradient of the trial energy
 std::vector<double> Sampler::computeGradientEtrial()
 {
-int N = m_gradientTerms.size();
-std::vector<double> gradient = std::vector<double>(N); 
+    int N = m_gradientTerms.size();
+    std::vector<double> gradient = std::vector<double>(N); 
     for(int i=0; i<N; i++){
         for(int j=0; j<2; j++){
             gradient[i] = 2*(m_gradientTerms[i][1]-m_energy*m_gradientTerms[i][0]);
         }
     }
-return gradient ; 
+    return gradient ; 
 }

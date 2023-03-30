@@ -13,7 +13,7 @@ public:
     Sampler(std::vector<std::unique_ptr< class Sampler> >  & samplers);
 
 
-    void sample(bool acceptedStep, class System* system);
+    virtual void sample(bool acceptedStep, class System* system);
     void equilibrationSample(bool acceptedStep);
     void transferWaveFunctionParameters(std::vector<double> parameters);
     void printOutputToTerminal();
@@ -34,6 +34,8 @@ public:
     std::vector<double> computeGradientEtrial();
     void initiateFile(std::string filename);
     void writeToFile(std::string filename);
+
+
 protected:
     unsigned int m_stepNumber = 0;
     unsigned int m_equilibrationStepNumber = 0;

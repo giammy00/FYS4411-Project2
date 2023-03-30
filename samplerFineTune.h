@@ -6,10 +6,9 @@ public:
     SamplerFineTune(
     unsigned int numberOfParticles,
     unsigned int numberOfDimensions,
-    int numberOfWFParams,
-    int thread_number
+    int numberOfWFParams
     );
 
     std::ofstream m_outBinaryFile;
-    void SamplerFineTune::sample(bool acceptedStep, System* system) ;
+    void sample(bool acceptedStep, System* system) override ;
 };
