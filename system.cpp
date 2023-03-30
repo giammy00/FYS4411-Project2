@@ -17,7 +17,8 @@ System::System(
         std::unique_ptr<class Hamiltonian> hamiltonian,
         std::unique_ptr<class WaveFunction> waveFunction,
         std::unique_ptr<class MonteCarlo> solver,
-        std::vector<std::unique_ptr<class Particle>> particles)
+        std::vector<std::unique_ptr<class Particle>> particles,
+        bool calculateGradient)
 {
     m_numberOfParticles = particles.size();;
     m_numberOfDimensions = particles[0]->getNumberOfDimensions();
@@ -26,6 +27,7 @@ System::System(
     m_solver = std::move(solver);
     m_particles = std::move(particles);
     m_waveFunction->InitialisePositions(m_particles);
+    m_calculateGradient = calculateGradient;
 }
 
 
@@ -33,12 +35,21 @@ std::unique_ptr<class Sampler> System::runEquilibrationSteps(
         double stepLength,
         unsigned int numberOfEquilibrationSteps)
 {
-    auto sampler = std::make_unique<SamplerFineTune>(
-    // auto sampler = std::make_unique<Sampler>(
-        m_numberOfParticles,
-        m_numberOfDimensions, 
-        m_waveFunction->getNumberOfParameters()
-        );
+    std::unique_ptr<class Sampler> sampler;
+    if(m_calculateGradient){
+        sampler = std::make_unique<Sampler>(
+            m_numberOfParticles,
+            m_numberOfDimensions, 
+            m_waveFunction->getNumberOfParameters()
+            );
+    }
+    else{
+        sampler = std::make_unique<SamplerFineTune>(
+            m_numberOfParticles,
+            m_numberOfDimensions, 
+            0
+            );
+    }
 
     for (unsigned int i = 0; i < numberOfEquilibrationSteps; i++) {
         sampler->equilibrationSample(m_solver->step(stepLength, *m_waveFunction, m_particles));

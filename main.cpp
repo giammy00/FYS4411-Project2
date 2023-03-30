@@ -32,6 +32,7 @@ std::unique_ptr<Sampler> runSimulation(
     unsigned int numberOfParticles,
     unsigned int numberOfMetropolisSteps,
     unsigned int numberOfEquilibrationSteps,
+    bool calculateGradients,
     double omega,
     double gamma,
     double a_ho,
@@ -58,7 +59,8 @@ std::unique_ptr<Sampler> runSimulation(
             std::make_unique<MetropolisHastings>(std::move(rng)),
             // std::make_unique<Metropolis>(std::move(rng)),
             // Move the vector of particles to system
-            std::move(particles));
+            std::move(particles),
+            calculateGradients);
     
     // Run steps to equilibrate particles
     auto sampler = system->runEquilibrationSteps(
@@ -90,6 +92,7 @@ int main() {
     unsigned int iterCount, nMaxIter = 1E0;
     //set tolerance for convergence of gd
     double energyChange, oldEnergy, newEnergy, energyTol = 1E-10;
+    bool calculateGradients = true;
 
     double numberOfParticles;
     auto numberOfParticlesArray=std::vector<unsigned int>{10};//{10,100,500};
@@ -153,6 +156,7 @@ int main() {
                         numberOfParticles,
                         numberOfMetropolisSteps,
                         numberOfEquilibrationSteps,
+                        calculateGradients,
                         omega,
                         gamma,
                         a_ho,

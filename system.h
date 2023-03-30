@@ -10,7 +10,8 @@ public:
             std::unique_ptr<class Hamiltonian> hamiltonian,
             std::unique_ptr<class WaveFunction> waveFunction,
             std::unique_ptr<class MonteCarlo> solver,
-            std::vector<std::unique_ptr<class Particle>> particles);
+            std::vector<std::unique_ptr<class Particle>> particles,
+            bool calculateGradient);
 
     std::unique_ptr<class Sampler> runEquilibrationSteps(
             double stepLength,
@@ -28,6 +29,7 @@ public:
 private:
     unsigned int m_numberOfParticles = 0;
     unsigned int m_numberOfDimensions = 0;
+    bool m_calculateGradient;
 
     std::unique_ptr<class Hamiltonian> m_hamiltonian;
     std::unique_ptr<class WaveFunction> m_waveFunction;

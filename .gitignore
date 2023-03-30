@@ -37,3 +37,6 @@ build
 # Ignore default executable
 vmc
 .vscode
+
+# Ignore output data
+*.bin
