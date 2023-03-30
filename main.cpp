@@ -86,7 +86,7 @@ int main() {
     double momentum = 0.6;
     //store initial trainable parameters of the wave function
     //wfParams is reset to wfParams0 every time a new gradient descent is started
-    std::vector<double> wfParams, wfParams0 = std::vector<double>{0.45, 2.95};
+    std::vector<double> wfParams, wfParams0 = std::vector<double>{0.50, 2.86};
     int nParams = wfParams0.size();
     //for momentum GD:
     std::vector<double> velocity = std::vector<double>(nParams, 0.0);
@@ -96,11 +96,11 @@ int main() {
     double energyChange, oldEnergy, newEnergy, energyTol = 1E-10;
 
     double numberOfParticles;
-    auto numberOfParticlesArray=std::vector<unsigned int>{50};//{10,100,500};
+    auto numberOfParticlesArray=std::vector<unsigned int>{10};//{10,100,500};
     unsigned int numberOfMetropolisSteps = (unsigned int) 3E5;
     unsigned int numberOfEquilibrationSteps = (unsigned int) 1E4;
     double omega = 1.0; // Oscillator frequency.
-    double gamma = 2.8; // Harmonic Oscillator flatness.
+    double gamma = 2.8284; // Harmonic Oscillator flatness.
     double a_ho = std::sqrt(1./omega); // Characteristic size of the Harmonic Oscillator
     double stepLength = 5E-1; // Metropolis step length.
     stepLength *= a_ho; // Scale the steplength in case of changed omega
