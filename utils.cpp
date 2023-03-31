@@ -1,7 +1,7 @@
 #pragma once
 #include<vector>
 #include <memory>
-
+#include<nlopt.hpp>
 #include "utils.h"
 #include "omp.h"
 #include"sampler.h"
@@ -118,4 +118,42 @@ std::unique_ptr<Sampler> runSimulation(
             P->numberOfMetropolisSteps);
 
     return sampler;
+}
+
+
+//DEFINITION OF GRADIENT DESCENT WITH MOMENTUM, HERE ARE ALL MEMBER DEFINITION FOR THE CLASS momentumOpimizer.
+momentumOptimizer::momentumOptimizer(int n_params, GdParams* gd_params){
+    m_learning_rate = gd_params->learning_rate;
+    m_momentum = gd_params->momentum; 
+    m_velocity = std::vector<double>(n_params, 0.0);
+    m_gradient = std::vector<double>(n_params, 0.0);
+    m_initiated = false;
+}
+void momentumOptimizer::set_min_objective(obj_func funct,  void * func_data ){
+    m_objective_function = funct;
+    m_function_params = func_data;
+    m_initiated = true;
+}
+double momentumOptimizer::optimize(std::vector<double>& x, double& opt_f ) {
+    if(!m_initiated){
+        std::cout << "Error. Objective function not set. Terminating program." << std::endl;
+        exit(1);
+    }
+    unsigned int iterCount=0;
+    double energyChange=1; //set to 1 just to enter while loop, should be >= energyTol
+    double oldEnergy = 1E7;//to enter while loop twice
+    while(  (iterCount<m_maxeval) && (energyChange>=m_f_abs_tol)   )
+    {
+        opt_f = wrapSimulation(x, m_gradient, m_function_params);
+        energyChange = fabs(oldEnergy-opt_f);
+        oldEnergy = opt_f;
+        //update parameters using momentum gd
+        for(unsigned int i=0; i<m_gradient.size(); i++){
+            m_velocity[i] = m_momentum *  m_velocity[i] - m_learning_rate * m_gradient[i] ;
+            x[i] += m_velocity[i];
+        }
+        iterCount++;
+    }    
+
+    return opt_f;
 }

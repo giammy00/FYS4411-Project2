@@ -17,21 +17,15 @@ omega = 1
 int main(int argc, char *argv[]) {
 
     ///////// Variable declarations and default values //////////////////
-    //hyperparameters for gradient descent:
-    double learning_rate = 3E-3;
-    double momentum = 0.6;
-    //store initial trainable parameters of the wave function
-    //wfParams is reset to wfParams0 every time a new gradient descent is started
     std::vector<double> wfParams = std::vector<double>{0.5, 1.};
-    //define gradient placeholder, to which the gradient will be written
-    std::vector<double> gradient = std::vector<double>(wfParams.size());
-    //for momentum GD:
-    std::vector<double> velocity = std::vector<double>(wfParams.size(), 0.0);
     //set a maximum number of iterations for gd
-    unsigned int iterCount, nMaxIter = 3E0;
+    unsigned int  nMaxIter = 3E0;
     //set tolerance for convergence of gd
-    double energyChange, oldEnergy, newEnergy, energyTol = 1E-7;
+    double  energyTol = 1E-7;
+    //parameters of the simulation
     SimulationParams simPar ;
+    //hyperparameters for gradient descent:
+    GdParams gd_parameters ;
     if (argc > 1){
         // Input filename from command line
         std::string input_filename = argv[1];
@@ -59,9 +53,9 @@ int main(int argc, char *argv[]) {
             if (value == "")
             {}
             else if (name == "learning_rate")
-            {learning_rate = std::stod(value);}
+            {gd_parameters.learning_rate = std::stod(value);}
             else if (name == "momentum")
-            {momentum = std::stod(value);}
+            {gd_parameters.momentum = std::stod(value);}
             else if (name == "alpha")
             {wfParams[0] = std::stod(value);}
             else if (name == "beta")
@@ -113,6 +107,10 @@ int main(int argc, char *argv[]) {
     simPar.a_ho = std::sqrt(1./simPar.omega); // Characteristic size of the Harmonic Oscillator
     simPar.stepLength *= simPar.a_ho; // Scale the steplength in case of changed omega            
 
+    gd_parameters.learning_rate = 3E-3;
+    gd_parameters.momentum = 0.6;
+    
+
     //#define TIMEING // Comment out turn off timing
     #ifdef TIMEING
     auto times = vector<int>();
@@ -123,29 +121,17 @@ int main(int argc, char *argv[]) {
     auto t1 = high_resolution_clock::now();
     #endif
 
-
+    double optimal_energy; 
     // LBFGS ALGORITHM
-        
-    nlopt::opt opt(nlopt::LD_LBFGS, 2);
+    // nlopt::opt opt(nlopt::LD_LBFGS, 2);
+    // GRADIENT DESCENT WITH MOMENTUM
+    momentumOptimizer opt(2, &gd_parameters);
+
     opt.set_min_objective(wrapSimulation, (void *) & simPar );
     opt.set_maxeval(nMaxIter);
     opt.set_ftol_abs(energyTol);
-    nlopt::result optimal_params = opt.optimize(wfParams, newEnergy);
-    // iterCount=0;
-    // energyChange=1; //set to 1 just to enter while loop, should be >= energyTol
-    // oldEnergy = 1E7;//to enter while loop twice
-    // while(  (iterCount<nMaxIter) && (energyChange>=energyTol)   )
-    // {
-    //     newEnergy = wrapSimulation(wfParams, gradient, (void *) &simPar);
-    //     energyChange = fabs(oldEnergy-newEnergy);
-    //     oldEnergy = newEnergy;
-    //     //update parameters using momentum gd
-    //     for(unsigned int i=0; i<gradient.size(); i++){
-    //         velocity[i] = momentum *  velocity[i] - learning_rate * gradient[i] ;
-    //         wfParams[i] += velocity[i];
-    //     }
-    //     iterCount++;
-    // }
+    auto optimal_params = opt.optimize(wfParams, optimal_energy);
+
     #ifdef TIMEING
     auto t2 = high_resolution_clock::now();
     /* Getting number of milliseconds as an integer. */
