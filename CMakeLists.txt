@@ -15,8 +15,9 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Debug)
 endif()
 
-#check if openMP is present:
+#check if openMP and NLopt are present:
 find_package(OpenMP REQUIRED)
+find_package(NLopt REQUIRED)
 
 # Add all compiler warnings. Remember, a warning in C++ can very often lead to a bug
 # later on so _fix your warnings!_
@@ -27,7 +28,6 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g")
 # -O0, -O1, -O2.
 #set(CMAKE_CXX_FLAGS_RELEASE "-O0 -fopt-info")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-
 # Add directories containing header-files
 include_directories(
     .
@@ -51,3 +51,4 @@ file(
 
 # Create executable called "vmc"
 add_executable(vmc ${SOURCES})
+target_link_libraries(vmc nlopt)

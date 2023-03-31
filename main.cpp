@@ -103,7 +103,7 @@ int main(int argc, char *argv[]) {
 
     simPar.numberOfDimensions=3;
     simPar.numberOfParticles=10;//50; 100
-    simPar.numberOfMetropolisSteps=3E4;
+    simPar.numberOfMetropolisSteps=5E4;
     simPar.numberOfEquilibrationSteps=1E3;
     simPar.calculateGradients=true;
     simPar.omega=1;
@@ -123,21 +123,29 @@ int main(int argc, char *argv[]) {
     auto t1 = high_resolution_clock::now();
     #endif
 
-    iterCount=0;
-    energyChange=1; //set to 1 just to enter while loop, should be >= energyTol
-    oldEnergy = 1E7;//to enter while loop twice
-    while(  (iterCount<nMaxIter) && (energyChange>=energyTol)   )
-    {
-        newEnergy = wrapSimulation(wfParams, gradient, simPar);
-        energyChange = fabs(oldEnergy-newEnergy);
-        oldEnergy = newEnergy;
-        //update parameters using momentum gd
-        for(unsigned int i=0; i<gradient.size(); i++){
-            velocity[i] = momentum *  velocity[i] - learning_rate * gradient[i] ;
-            wfParams[i] += velocity[i];
-        }
-        iterCount++;
-    }
+
+    // LBFGS ALGORITHM
+        
+    nlopt::opt opt(nlopt::LD_LBFGS, 2);
+    opt.set_min_objective(wrapSimulation, (void *) & simPar );
+    opt.set_maxeval(nMaxIter);
+    opt.set_ftol_abs(energyTol);
+    nlopt::result optimal_params = opt.optimize(wfParams, newEnergy);
+    // iterCount=0;
+    // energyChange=1; //set to 1 just to enter while loop, should be >= energyTol
+    // oldEnergy = 1E7;//to enter while loop twice
+    // while(  (iterCount<nMaxIter) && (energyChange>=energyTol)   )
+    // {
+    //     newEnergy = wrapSimulation(wfParams, gradient, (void *) &simPar);
+    //     energyChange = fabs(oldEnergy-newEnergy);
+    //     oldEnergy = newEnergy;
+    //     //update parameters using momentum gd
+    //     for(unsigned int i=0; i<gradient.size(); i++){
+    //         velocity[i] = momentum *  velocity[i] - learning_rate * gradient[i] ;
+    //         wfParams[i] += velocity[i];
+    //     }
+    //     iterCount++;
+    // }
     #ifdef TIMEING
     auto t2 = high_resolution_clock::now();
     /* Getting number of milliseconds as an integer. */

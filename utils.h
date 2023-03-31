@@ -19,8 +19,8 @@ typedef struct simulationParams SimulationParams;
 double wrapSimulation(  
     const std::vector<double> &params,
     std::vector<double> &grad, 
-    SimulationParams P  );
+    void * xPtr  );
 std::unique_ptr<Sampler> runSimulation(
-    SimulationParams P,
+    SimulationParams * P,
     std::vector<double> params
 );
