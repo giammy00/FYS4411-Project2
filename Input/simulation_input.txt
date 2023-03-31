@@ -1,0 +1,15 @@
+learning_rate=0.001
+momentum=0.6
+alpha=0.5
+beta=1.0
+gamma=1.0
+nMaxIter=1000
+energyTol=0.000006
+omega=1.0
+calculateGradients=1
+numberOfParticles=10
+numberOfMetropolisSteps=100000
+numberOfEquilibrationSteps=30000
+stepLength=0.5
+filename=Outputs/output.txt
+numberOfDimensions=3
