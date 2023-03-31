@@ -46,6 +46,7 @@ double wrapSimulation(const std::vector<double> &params, std::vector<double> &gr
     #pragma omp parallel
     {
         int thread_number = omp_get_thread_num();
+        
         auto sampler = runSimulation(
                 P,
                 params //params to init wavefunc
@@ -55,7 +56,8 @@ double wrapSimulation(const std::vector<double> &params, std::vector<double> &gr
     ///////////////////////////////////////////////
     ///// END PARALLEL REGION //////////////////
     ///////////////////////////////////////////////
-
+    
+    
 
     //gather all simulation results in one sampler
     std::unique_ptr< class Sampler > collective_sampler = std::make_unique< class Sampler >( samplers );
@@ -69,9 +71,10 @@ double wrapSimulation(const std::vector<double> &params, std::vector<double> &gr
     collective_sampler->printOutputToTerminalShort();
 
     //compute energy difference
+    
     double energy = collective_sampler->getEnergy();
 
-
+    
     //sampler computes gradient 
     grad = collective_sampler->computeGradientEtrial();
 
@@ -83,13 +86,16 @@ std::unique_ptr<Sampler> runSimulation(
     SimulationParams *P,
     std::vector<double> params
 ){
+    
     int seed = 2023;
     // The random engine can also be built without a seed
     auto rng = std::make_unique<Random>(seed);
     // Initialize particles
     // auto particles = setupNonOverlappingGaussianInitialState(numberOfDimensions, numberOfParticles, *rng, a_ho);
+    
     auto particles = setupNonOverlappingGaussianInitialState(P->numberOfDimensions, P->numberOfParticles, *rng, P->a_ho);
     // Construct a unique pointer to a new System
+    
     auto system = std::make_unique<System>(
             // Construct unique_ptr to Hamiltonian
             // std::make_unique<HarmonicOscillator>(omega),
@@ -110,13 +116,13 @@ std::unique_ptr<Sampler> runSimulation(
     auto sampler = system->runEquilibrationSteps(
             P->stepLength,
             P->numberOfEquilibrationSteps);
-
+         
     // Run the Metropolis algorithm
     sampler = system->runMetropolisSteps(
             std::move(sampler),
             P->stepLength,
             P->numberOfMetropolisSteps);
-
+    
     return sampler;
 }
 
@@ -144,14 +150,21 @@ double momentumOptimizer::optimize(std::vector<double>& x, double& opt_f ) {
     double oldEnergy = 1E7;//to enter while loop twice
     while(  (iterCount<m_maxeval) && (energyChange>=m_f_abs_tol)   )
     {
+        
+
         opt_f = wrapSimulation(x, m_gradient, m_function_params);
+        
         energyChange = fabs(oldEnergy-opt_f);
+        
         oldEnergy = opt_f;
+        
         //update parameters using momentum gd
         for(unsigned int i=0; i<m_gradient.size(); i++){
+
             m_velocity[i] = m_momentum *  m_velocity[i] - m_learning_rate * m_gradient[i] ;
             x[i] += m_velocity[i];
         }
+        
         iterCount++;
     }    
 

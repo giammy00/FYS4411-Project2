@@ -4,7 +4,7 @@
 
 #include "initialstate.h"
 #include "Math/random.h"
-
+#include "omp.h"
 
 std::vector<std::unique_ptr<Particle>> setupRandomUniformInitialState(
             unsigned int numberOfDimensions,
@@ -67,7 +67,6 @@ std::vector<std::unique_ptr<Particle>> setupNonOverlappingGaussianInitialState(
     bool collision;
     while (particles.size()<numberOfParticles) {
         std::vector<double> pos = std::vector<double>();
-
         for (unsigned int j=0; j < numberOfDimensions; j++) {
             pos.push_back(rng.nextGaussian(0,lengthScale));
         }

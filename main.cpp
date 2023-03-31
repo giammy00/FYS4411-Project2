@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
 
         // create filestream to read in inputs from file
         std::ifstream infile;
-        infile.open(path_input + input_filename + ".txt");
+        infile.open(path_input + input_filename);
 
         if (!infile.is_open())
         {
@@ -80,36 +80,51 @@ int main(int argc, char *argv[]) {
             {simPar.stepLength = std::stod(value);}
             else if (name == "filename")
             {simPar.filename = "Outputs/" + value;}
+            else if (name == "numberOfDimensions")
+            {simPar.numberOfDimensions=std::stoi(value);}
             else
             {
-                std::cout << "Error reading file" << std::endl;
+                std::cout << "Error reading file." << std::endl;
                 return 1;
             }
         }
     }
     else{
         std::cout << "WARNING: No settings file provided" << std::endl;
+        //DEFINE SIMULATION PARAMETERS
+        //no trainable params
+        simPar.numberOfDimensions=3;
+        simPar.numberOfParticles=10;//50; 100
+        simPar.numberOfMetropolisSteps=5E4;
+        simPar.numberOfEquilibrationSteps=1E3;
+        simPar.calculateGradients=true;
+        simPar.omega=1;
+        simPar.gamma=1;
+        simPar.stepLength=5E-1;
+        simPar.filename="Outputs/output.txt";
+        gd_parameters.learning_rate = 3E-3;
+        gd_parameters.momentum = 0.6;
     }
-
-    //DEFINE SIMULATION PARAMETERS
-    //NO GRADIENT DESCENT PARAMETERS HERE,
-    //NOT EVEN THE TRAINABLE PARAMS of the WF.
-
-    simPar.numberOfDimensions=3;
-    simPar.numberOfParticles=10;//50; 100
-    simPar.numberOfMetropolisSteps=5E4;
-    simPar.numberOfEquilibrationSteps=1E3;
-    simPar.calculateGradients=true;
-    simPar.omega=1;
-    simPar.gamma=1;
-    simPar.stepLength=5E-1;
-    simPar.filename="Outputs/output.txt";
     simPar.a_ho = std::sqrt(1./simPar.omega); // Characteristic size of the Harmonic Oscillator
-    simPar.stepLength *= simPar.a_ho; // Scale the steplength in case of changed omega            
+    simPar.stepLength *= simPar.a_ho; // Scale the steplength in case of changed omega        
 
-    gd_parameters.learning_rate = 3E-3;
-    gd_parameters.momentum = 0.6;
-    
+        std::cout << "Simulation Parameters:" << std::endl;
+    std::cout << "Number of Dimensions: " << simPar.numberOfDimensions << std::endl;
+    std::cout << "Number of Particles: " << simPar.numberOfParticles << std::endl;
+    std::cout << "Number of Metropolis Steps: " << simPar.numberOfMetropolisSteps << std::endl;
+    std::cout << "Number of Equilibration Steps: " << simPar.numberOfEquilibrationSteps << std::endl;
+    std::cout << "Calculate Gradients: " << simPar.calculateGradients << std::endl;
+    std::cout << "Omega: " << simPar.omega << std::endl;
+    std::cout << "Gamma: " << simPar.gamma << std::endl;
+    std::cout << "Step Length: " << simPar.stepLength << std::endl;
+    std::cout << "Filename: " << simPar.filename << std::endl;
+
+    std::cout << std::endl;
+
+    std::cout << "Gradient Descent Parameters:" << std::endl;
+    std::cout << "Learning Rate: " << gd_parameters.learning_rate << std::endl;
+    std::cout << "Momentum: " << gd_parameters.momentum << std::endl;
+    std::cout << "calculate grads? " << simPar.calculateGradients << std::endl;
 
     //#define TIMEING // Comment out turn off timing
     #ifdef TIMEING
@@ -123,9 +138,9 @@ int main(int argc, char *argv[]) {
 
     double optimal_energy; 
     // LBFGS ALGORITHM
-    // nlopt::opt opt(nlopt::LD_LBFGS, 2);
+    nlopt::opt opt(nlopt::LD_LBFGS, 2);
     // GRADIENT DESCENT WITH MOMENTUM
-    momentumOptimizer opt(2, &gd_parameters);
+    // momentumOptimizer opt(2, &gd_parameters);
 
     opt.set_min_objective(wrapSimulation, (void *) & simPar );
     opt.set_maxeval(nMaxIter);
