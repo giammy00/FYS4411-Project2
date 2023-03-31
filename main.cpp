@@ -107,25 +107,6 @@ int main(int argc, char *argv[]) {
     }
     simPar.a_ho = std::sqrt(1./simPar.omega); // Characteristic size of the Harmonic Oscillator
     simPar.stepLength *= simPar.a_ho; // Scale the steplength in case of changed omega        
-
-        std::cout << "Simulation Parameters:" << std::endl;
-    std::cout << "Number of Dimensions: " << simPar.numberOfDimensions << std::endl;
-    std::cout << "Number of Particles: " << simPar.numberOfParticles << std::endl;
-    std::cout << "Number of Metropolis Steps: " << simPar.numberOfMetropolisSteps << std::endl;
-    std::cout << "Number of Equilibration Steps: " << simPar.numberOfEquilibrationSteps << std::endl;
-    std::cout << "Calculate Gradients: " << simPar.calculateGradients << std::endl;
-    std::cout << "Omega: " << simPar.omega << std::endl;
-    std::cout << "Gamma: " << simPar.gamma << std::endl;
-    std::cout << "Step Length: " << simPar.stepLength << std::endl;
-    std::cout << "Filename: " << simPar.filename << std::endl;
-
-    std::cout << std::endl;
-
-    std::cout << "Gradient Descent Parameters:" << std::endl;
-    std::cout << "Learning Rate: " << gd_parameters.learning_rate << std::endl;
-    std::cout << "Momentum: " << gd_parameters.momentum << std::endl;
-    std::cout << "calculate grads? " << simPar.calculateGradients << std::endl;
-
     //#define TIMEING // Comment out turn off timing
     #ifdef TIMEING
     auto times = vector<int>();
