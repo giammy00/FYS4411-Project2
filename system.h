@@ -25,7 +25,7 @@ public:
     double computeLocalEnergy();
     const std::vector<double>& getWaveFunctionParameters();
     std::vector<double> getdPhi_dParams();
-
+    std::vector<double> System::getParticlePosition(int index);
 private:
     unsigned int m_numberOfParticles = 0;
     unsigned int m_numberOfDimensions = 0;

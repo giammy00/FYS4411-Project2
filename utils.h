@@ -57,3 +57,4 @@ class momentumOptimizer {
     unsigned int m_maxeval=1000;
     double m_f_abs_tol=0.01; 
 };
+unsigned int *** init_3d_array(unsigned int nx,unsigned int ny,unsigned int nz);

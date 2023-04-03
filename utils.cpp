@@ -170,3 +170,27 @@ double momentumOptimizer::optimize(std::vector<double>& x, double& opt_f ) {
 
     return opt_f;
 }
+
+unsigned int *** init_3d_array(unsigned int nx,unsigned int ny,unsigned int nz){
+    unsigned int ***retPtr = (unsigned int ***) malloc(nx*sizeof(unsigned int ** ));
+	retPtr[0] = (unsigned int **) malloc(nx*ny*sizeof(unsigned int *));
+	for (int j=1; j<nx; j++){
+		retPtr[j] = retPtr[j-1]+ny; 
+	}
+	retPtr[0][0]=(unsigned int *) malloc(nx*ny*nz*sizeof( double ));
+	//then loop through the matrix of pointers and assign the proper address to each of them:
+	for(int i = 0; i<nx; i++ ) {
+		for(int j=0; j<ny; j++){
+			retPtr[i][j] = retPtr[0][0] + (i*ny + j)*nz;
+		}
+	}   
+    for(int i=0; i<nx; i++ ){
+		for(int j=0; j<ny; j++){
+			for(int k=0; k<nz; k++){
+                retPtr[i][j][k]=0;
+            }
+        }
+    }
+    
+    return retPtr;
+}

@@ -118,11 +118,10 @@ int main(int argc, char *argv[]) {
     #endif
 
     double optimal_energy; 
-    // LBFGS ALGORITHM
+    // LBFGS ALGORITHM : 
     nlopt::opt opt(nlopt::LD_LBFGS, 2);
-    // GRADIENT DESCENT WITH MOMENTUM
+    // GRADIENT DESCENT WITH MOMENTUM: uncomment to enable
     // momentumOptimizer opt(2, &gd_parameters);
-
     opt.set_min_objective(wrapSimulation, (void *) & simPar );
     opt.set_maxeval(nMaxIter);
     opt.set_ftol_abs(energyTol);
