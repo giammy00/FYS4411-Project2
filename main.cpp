@@ -26,14 +26,13 @@ int main(int argc, char *argv[]) {
     SimulationParams simPar ;
     //hyperparameters for gradient descent:
     GdParams gd_parameters ;
-    if (argc > 1){
+    std::string OPTIMIZATION_ALGORITHM = "LBFGS";
+    if (argc>1){
         // Input filename from command line
         std::string input_filename = argv[1];
-        std::string path_input = "./Input/";
-
         // create filestream to read in inputs from file
         std::ifstream infile;
-        infile.open(path_input + input_filename);
+        infile.open(input_filename);
 
         if (!infile.is_open())
         {
@@ -89,22 +88,26 @@ int main(int argc, char *argv[]) {
             }
         }
     }
-    else{
-        std::cout << "WARNING: No settings file provided" << std::endl;
-        //DEFINE SIMULATION PARAMETERS
-        //no trainable params
-        simPar.numberOfDimensions=3;
-        simPar.numberOfParticles=10;//50; 100
-        simPar.numberOfMetropolisSteps=5E4;
-        simPar.numberOfEquilibrationSteps=1E3;
-        simPar.calculateGradients=true;
-        simPar.omega=1;
-        simPar.gamma=1;
-        simPar.stepLength=5E-1;
-        simPar.filename="Outputs/output.txt";
-        gd_parameters.learning_rate = 3E-3;
-        gd_parameters.momentum = 0.6;
+    else    {
+    std::cout << "error: No settings file provided.\n" << 
+    "Please use as: " << argv[0] << " <settings_file> [ , <algorithm>].\n" << 
+    "Program will be terminated." << std::endl;
+    exit(1);
     }
+    if (argc>2){
+        std::string algo = argv[1];
+        if (algo == "GD"){
+            OPTIMIZATION_ALGORITHM=algo;
+        }
+        else if (algo == "LBFGS") ; //do nothing already set
+        else {
+            cout << "Error. Alorithm not recognized.\n Supported algorithms:  'GD' or 'LBFGS', defaults to LBFGS.\n " <<
+                "Please use as: " << argv[0] << " <settings_file> [ , <algorithm>].\n" <<  endl;
+            exit(1);
+        }
+    }
+    
+
     simPar.a_ho = std::sqrt(1./simPar.omega); // Characteristic size of the Harmonic Oscillator
     simPar.stepLength *= simPar.a_ho; // Scale the steplength in case of changed omega        
     //#define TIMEING // Comment out turn off timing
@@ -117,21 +120,26 @@ int main(int argc, char *argv[]) {
     auto t1 = high_resolution_clock::now();
     #endif
 
-    ////////////////////// THE FOLLOWING LINES  DO GRADIENT DESCENT/LBFGS 
-    // double optimal_energy; 
-    // // LBFGS ALGORITHM : 
-    // nlopt::opt opt(nlopt::LD_LBFGS, 2);
-    // // GRADIENT DESCENT WITH MOMENTUM: uncomment to enable
-    // // momentumOptimizer opt(2, &gd_parameters);
-    // opt.set_min_objective(wrapSimulation, (void *) & simPar );
-    // opt.set_maxeval(nMaxIter);
-    // opt.set_ftol_abs(energyTol);
-    // auto optimal_params = opt.optimize(wfParams, optimal_energy);
-
-
+    if (simPar.calculateGradients){
+        cout << "Optimizing wave function with gradient method " << OPTIMIZATION_ALGORITHM << endl;
+        double optimal_energy; 
+        // LBFGS ALGORITHM : 
+        nlopt::opt opt(nlopt::LD_LBFGS, 2);
+        if (OPTIMIZATION_ALGORITHM=="GD"){
+            cout << "gd " << endl;
+            momentumOptimizer opt(2, &gd_parameters);
+        }
+        opt.set_min_objective(wrapSimulation, (void *) & simPar );
+        opt.set_maxeval(nMaxIter);
+        opt.set_ftol_abs(energyTol);
+        opt.optimize(wfParams, optimal_energy);
+    }
     //////////////// THE FOLLOWING LINE DOES A LONG SIMULATION WITHOUT GRADIENT COMPUTATION
-    wrapSimulationLargeScale( wfParams, (void*) & simPar);
-
+    else{
+        cout << "Running simulation without computing gradients.\n " <<
+        "If you wish to enable gradient method, edit simulation_input.txt. " << endl; 
+        wrapSimulationLargeScale( wfParams, (void*) & simPar);
+    }
     #ifdef TIMEING
     auto t2 = high_resolution_clock::now();
     /* Getting number of milliseconds as an integer. */
