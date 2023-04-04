@@ -81,13 +81,49 @@ double wrapSimulation(const std::vector<double> &params, std::vector<double> &gr
     return energy;
 }
 
+//to keep main clean, define the large scale simulation here.
+void wrapSimulationLargeScale(const std::vector<double> &params,  void * xPtr) {
+    //xPtr points to a struct SimulationParams.
+    //wraps the runSimulation function so that it is used to run a large monte carlo simulation,
+    //no gradient is computed now. 
+    //NB need to set compute gradients to 0 in the input file.
 
-std::unique_ptr<Sampler> runSimulation(
+    //convert P to struct pointer:
+    SimulationParams* P = (SimulationParams *) xPtr;    
+    int NUM_THREADS = omp_get_max_threads();
+    std::cout << "Using " << NUM_THREADS << " threads." << std::endl;
+    std::vector< std::unique_ptr< class Sampler >> samplers(NUM_THREADS);
+
+    ///////////////////////////////////////////////
+    ///// START PARALLEL REGION //////////////////
+    ///////////////////////////////////////////////
+    
+    #pragma omp parallel
+    {
+        int thread_number = omp_get_thread_num();
+        
+        auto sampler = runSimulation(
+                P,
+                params //params to init wavefunc
+                );
+
+        sampler->writeHistogram();
+        samplers[thread_number] = std::move(sampler);
+    }
+    ///////////////////////////////////////////////
+    ///// END PARALLEL REGION //////////////////
+    ///////////////////////////////////////////////
+
+    return ;
+}
+
+
+std::unique_ptr<class Sampler> runSimulation(
     SimulationParams *P,
     std::vector<double> params
 ){
     
-    int seed = 2023;
+    int seed = 2023*omp_get_thread_num();
     // The random engine can also be built without a seed
     auto rng = std::make_unique<Random>(seed);
     // Initialize particles
@@ -113,7 +149,7 @@ std::unique_ptr<Sampler> runSimulation(
             P->calculateGradients);
     
     // Run steps to equilibrate particles
-    auto sampler = system->runEquilibrationSteps(
+    std::unique_ptr<class Sampler> sampler = system->runEquilibrationSteps(
             P->stepLength,
             P->numberOfEquilibrationSteps);
          
@@ -172,21 +208,24 @@ double momentumOptimizer::optimize(std::vector<double>& x, double& opt_f ) {
 }
 
 unsigned int *** init_3d_array(unsigned int nx,unsigned int ny,unsigned int nz){
+    //inits a 3d array of zeros
     unsigned int ***retPtr = (unsigned int ***) malloc(nx*sizeof(unsigned int ** ));
 	retPtr[0] = (unsigned int **) malloc(nx*ny*sizeof(unsigned int *));
-	for (int j=1; j<nx; j++){
+    unsigned int i, j, k;
+	for ( j=1; j<nx; j++){
 		retPtr[j] = retPtr[j-1]+ny; 
 	}
 	retPtr[0][0]=(unsigned int *) malloc(nx*ny*nz*sizeof( double ));
 	//then loop through the matrix of pointers and assign the proper address to each of them:
-	for(int i = 0; i<nx; i++ ) {
-		for(int j=0; j<ny; j++){
+	for( i = 0; i<nx; i++ ) {
+		for( j=0; j<ny; j++){
 			retPtr[i][j] = retPtr[0][0] + (i*ny + j)*nz;
 		}
 	}   
-    for(int i=0; i<nx; i++ ){
-		for(int j=0; j<ny; j++){
-			for(int k=0; k<nz; k++){
+    //initialize all elements to zero
+    for( i=0; i<nx; i++ ){
+		for( j=0; j<ny; j++){
+			for( k=0; k<nz; k++){
                 retPtr[i][j][k]=0;
             }
         }

@@ -2,7 +2,8 @@
 #include <memory>
 #include <string>
 #include <iostream>
-
+#include <fstream>
+#include <vector>
 class Sampler {
 public:
     Sampler(
@@ -11,7 +12,7 @@ public:
         int numberOfWFParams
         );
     Sampler(std::vector<std::unique_ptr< class Sampler> >  & samplers);
-
+    Sampler();
 
     virtual void sample(bool acceptedStep, class System* system);
     void equilibrationSample(bool acceptedStep);
@@ -34,7 +35,7 @@ public:
     std::vector<double> computeGradientEtrial();
     void initiateFile(std::string filename);
     void writeToFile(std::string filename);
-
+    virtual void writeHistogram();
 
 protected:
     unsigned int m_stepNumber = 0;

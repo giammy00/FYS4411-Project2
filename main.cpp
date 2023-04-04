@@ -117,15 +117,20 @@ int main(int argc, char *argv[]) {
     auto t1 = high_resolution_clock::now();
     #endif
 
-    double optimal_energy; 
-    // LBFGS ALGORITHM : 
-    nlopt::opt opt(nlopt::LD_LBFGS, 2);
-    // GRADIENT DESCENT WITH MOMENTUM: uncomment to enable
-    // momentumOptimizer opt(2, &gd_parameters);
-    opt.set_min_objective(wrapSimulation, (void *) & simPar );
-    opt.set_maxeval(nMaxIter);
-    opt.set_ftol_abs(energyTol);
-    auto optimal_params = opt.optimize(wfParams, optimal_energy);
+    ////////////////////// THE FOLLOWING LINES  DO GRADIENT DESCENT/LBFGS 
+    // double optimal_energy; 
+    // // LBFGS ALGORITHM : 
+    // nlopt::opt opt(nlopt::LD_LBFGS, 2);
+    // // GRADIENT DESCENT WITH MOMENTUM: uncomment to enable
+    // // momentumOptimizer opt(2, &gd_parameters);
+    // opt.set_min_objective(wrapSimulation, (void *) & simPar );
+    // opt.set_maxeval(nMaxIter);
+    // opt.set_ftol_abs(energyTol);
+    // auto optimal_params = opt.optimize(wfParams, optimal_energy);
+
+
+    //////////////// THE FOLLOWING LINE DOES A LONG SIMULATION WITHOUT GRADIENT COMPUTATION
+    wrapSimulationLargeScale( wfParams, (void*) & simPar);
 
     #ifdef TIMEING
     auto t2 = high_resolution_clock::now();

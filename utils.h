@@ -31,6 +31,8 @@ std::unique_ptr<Sampler> runSimulation(
     SimulationParams * P,
     std::vector<double> params
 );
+//define function which runs MC simulation without gradients.
+void wrapSimulationLargeScale(const std::vector<double> &params,  void * xPtr);
 
 //define an alias for a pointer to an objective function to be minimized.
 typedef double (*obj_func)(const std::vector<double>& trainable_params,std::vector<double> &grad, void * xPtr);

@@ -127,6 +127,6 @@ void testEquilibration(std::vector<std::unique_ptr<Particle>>& particles, double
     std::cout << "\n";
 }
 
-std::vector<double> System::getLastMovedParticlePosition(int index){
+std::vector<double> System::getParticlePosition(int index){
     return m_particles[index]->getPosition();
 }

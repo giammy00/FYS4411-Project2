@@ -12,7 +12,12 @@
 
 using std::cout;
 using std::endl;
-
+ 
+//define a dummy default constructor which does nothing. 
+//this is called when I construct an instance of SamplerFineTune 
+Sampler::Sampler(){
+    ;
+}
 
 Sampler::Sampler(
         unsigned int numberOfParticles,
@@ -203,4 +208,9 @@ std::vector<double> Sampler::computeGradientEtrial()
         }
     }
     return gradient ; 
+}
+
+void Sampler::writeHistogram(){
+    std::cout << "Warning. Attempted to write histogram during optimization. Exiting now. \n" << std::endl;
+    exit(1);
 }
