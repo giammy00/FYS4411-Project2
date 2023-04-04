@@ -175,8 +175,11 @@ void Sampler::initiateFile(std::string filename){
         << "n_accepted_steps" << '\t'
         << "E" << '\t'
         << "var" << '\t'
-        << "params" << '\t'
-        << "gradient"<< endl;
+        << "alpha" << '\t'
+        << "beta" << '\t'
+        << "a" << '\t'
+        << "gradient_alpha" << '\t'
+        << "gradient_beta"<< endl;
     file.close();
 }
 

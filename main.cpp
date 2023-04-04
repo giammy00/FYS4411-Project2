@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
             else if (name == "stepLength")
             {simPar.stepLength = std::stod(value);}
             else if (name == "filename")
-            {simPar.filename = "Outputs/" + value;}
+            {simPar.filename = value;}
             else if (name == "numberOfDimensions")
             {simPar.numberOfDimensions=std::stoi(value);}
             else
@@ -95,11 +95,13 @@ int main(int argc, char *argv[]) {
     exit(1);
     }
     if (argc>2){
-        std::string algo = argv[1];
+        std::string algo = argv[2];
         if (algo == "GD"){
             OPTIMIZATION_ALGORITHM=algo;
         }
-        else if (algo == "LBFGS") ; //do nothing already set
+        else if (algo == "LBFGS") {
+            ; //do nothing already set
+        }
         else {
             cout << "Error. Alorithm not recognized.\n Supported algorithms:  'GD' or 'LBFGS', defaults to LBFGS.\n " <<
                 "Please use as: " << argv[0] << " <settings_file> [ , <algorithm>].\n" <<  endl;
