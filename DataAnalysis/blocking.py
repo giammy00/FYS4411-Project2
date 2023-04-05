@@ -1,35 +1,50 @@
-import numpy as np
+from numpy import log2, zeros, mean, var, sum, loadtxt, arange, \
+                  array, cumsum, dot, transpose, diagonal, floor
+from numpy.linalg import inv
 
-def blocking(sample):
-    ''' perform blocking transformation on an array of sampled energies.
-    In case there is an odd number of energies, the last one is discarded.'''
+def block(x):
+    # preliminaries
+    d = log2(len(x))
+    if (d - floor(d) != 0):
+        print("Warning: Data size = %g, is not a power of 2." % floor(2**d))
+        print("Truncating data to %g." % 2**floor(d) )
+        x = x[:2**int(floor(d))]
+    d = int(floor(d))
+    n = 2**d
+    s, gamma = zeros(d), zeros(d)
+    mu = mean(x)
 
-    x1 = sample[0:-1:2]
-    x2 = sample[1::2]
-    return 0.5*(x1+x2)
+    # estimate the auto-covariance and variances 
+    # for each blocking transformation
+    for i in arange(0,d):
+        n = len(x)
+        # estimate autocovariance of x
+        gamma[i] = (n)**(-1)*sum( (x[0:(n-1)]-mu)*(x[1:n]-mu) )
+        # estimate variance of x
+        s[i] = var(x)
+        # perform blocking transformation
+        x = 0.5*(x[0::2] + x[1::2])
+   
+    # generate the test observator M_k from the theorem
+    M = (cumsum( ((gamma/s)**2*2**arange(1,d+1)[::-1])[::-1] )  )[::-1]
 
-def block_variance(sample, talk=False):
-    '''estimate the variance of the mean, using the blocking method.'''
-    var_array = np.empty(0)
-    nk=10
-    sample_mean = np.mean(sample)
-    while(nk>2):
-        blocked_sample = blocking(sample)
-        nk = blocked_sample.shape[0]
-        if talk:
-            print(f"Blocking a sample of size {nk}")
+    # we need a list of magic numbers
+    q =array([6.634897,  9.210340,  11.344867, 13.276704, 15.086272, 
+              16.811894, 18.475307, 20.090235, 21.665994, 23.209251,
+              24.724970, 26.216967, 27.688250, 29.141238, 30.577914, 
+              31.999927, 33.408664, 34.805306, 36.190869, 37.566235,
+              38.932173, 40.289360, 41.638398, 42.979820, 44.314105, 
+              45.641683, 46.962942, 48.278236, 49.587884, 50.892181])
 
-        samplevar = np.var(blocked_sample, axis=0)
-        old_est = var_est
-        var_est = samplevar/(nk-1)
-        var_array = np.append(var_array, var_est, axis=0)
-        sample = blocked_sample
-        #exit if change is less than the estimated uncertainty (aka standard deviation)
-        uncertainty = var_est*np.sqrt(2/(nk-1))
-        if np.abs(old_est-var_est)<uncertainty:
+    # use magic to determine when we should have stopped blocking
+    for k in arange(0,d):
+        if(M[k] < q[k]):
             break
-
-    return var_est, sample_mean
+    if (k >= d-1):
+        print("Warning: Use more data")
+    return s[k]/2**(d-k)
+    
+    
 
 
 
