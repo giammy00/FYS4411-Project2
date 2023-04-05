@@ -13,6 +13,7 @@ struct simulationParams{
     double a_ho;
     double stepLength;
     std::string filename;
+    int base_seed;//store base seed , will be manipulated in different ways in every simulation
 };
 struct gdParams{
     double learning_rate;

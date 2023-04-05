@@ -128,7 +128,6 @@ int main(int argc, char *argv[]) {
         // LBFGS ALGORITHM : 
         nlopt::opt opt(nlopt::LD_LBFGS, 2);
         if (OPTIMIZATION_ALGORITHM=="GD"){
-            cout << "gd " << endl;
             momentumOptimizer opt(2, &gd_parameters);
         }
         opt.set_min_objective(wrapSimulation, (void *) & simPar );

@@ -19,6 +19,7 @@
 #include "particle.h"
 #include "sampler.h"
 
+std::seed_seq seq{std::random_device{}()};
 
 double wrapSimulation(const std::vector<double> &params, std::vector<double> &grad, void * xPtr) {
     //wraps the runSimulation function so that it can be used with nlopt library  
@@ -28,6 +29,10 @@ double wrapSimulation(const std::vector<double> &params, std::vector<double> &gr
 
     //convert P to struct pointer:
     SimulationParams* P = (SimulationParams *) xPtr;
+    //need a new seed every time a simulation is run. 
+    std::vector<int> current_seed(1);
+    seq.generate(current_seed.begin(), current_seed.end());
+    P->base_seed = current_seed[0];
     bool file_initiated;
     if( FILE * fptr  = fopen(P->filename.c_str(),"r") ){
         fclose(fptr);
@@ -123,7 +128,7 @@ std::unique_ptr<class Sampler> runSimulation(
     std::vector<double> params
 ){
     
-    int seed = 2023*omp_get_thread_num();
+    int seed = (P->base_seed)+77*omp_get_thread_num();
     // The random engine can also be built without a seed
     auto rng = std::make_unique<Random>(seed);
     // Initialize particles
