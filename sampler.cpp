@@ -3,6 +3,7 @@
 #include <fstream>
 #include <cmath>
 #include <vector>
+#include <iomanip>
 #include <string>
 #include "system.h"
 #include "sampler.h"
@@ -119,7 +120,7 @@ void Sampler::printOutputToTerminal() {
     }
     cout << endl;
     cout << "  -- Results -- " << endl;
-    cout << " Energy : " << m_energy << endl;
+    cout << " Energy : " << std::setprecision(8) << m_energy << endl;
     cout << " Variance in the energy : " << m_energy2 - m_energy * m_energy << endl;
     cout << " Gradient of the variational parameters: ";
     for (unsigned int i=0; i < grad.size(); i++) {
@@ -144,6 +145,7 @@ void Sampler::printOutputToTerminalShort() {
     }
     cout << endl;
     cout << "  -- Results -- " << endl;
+    cout << std::setprecision(8) ;
     cout << " Energy : " << m_energy << endl;
     cout << " Variance in the energy : " << m_energy2 - m_energy * m_energy << endl;
     cout << " Gradient of the variational parameters: ";
@@ -186,6 +188,7 @@ void Sampler::initiateFile(std::string filename){
 void Sampler::writeToFile(std::string filename){
     std::ofstream file (filename, std::ofstream::app);
     std::vector<double> grad = computeGradientEtrial();
+    file << std::setprecision(10);
     file << m_numberOfParticles << '\t'
         << m_numberOfDimensions << '\t'
         << m_stepNumber << '\t'
