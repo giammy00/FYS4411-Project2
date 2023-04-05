@@ -25,9 +25,9 @@ double HarmonicOscillator3D::computeLocalEnergy(
         )
 {
     // Here, you need to compute the kinetic and potential energies.
-
+    unsigned int N = particles.size();
     double r2 = 0;
-    for (unsigned int i = 0; i < particles.size(); i++){
+    for (unsigned int i = 0; i < N; i++){
         auto position = particles[i]->getPosition();
         r2 += position[0]*position[0];
         r2 += position[1]*position[1];
@@ -36,5 +36,5 @@ double HarmonicOscillator3D::computeLocalEnergy(
     // m = omega = 1
     double potentialEnergy = 0.5 * r2;
     double kineticEnergy   = waveFunction.computeDoubleDerivative(particles)*-0.5;
-    return kineticEnergy + potentialEnergy;
+    return (kineticEnergy + potentialEnergy)/N;
 }

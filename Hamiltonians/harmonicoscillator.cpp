@@ -30,7 +30,8 @@ double HarmonicOscillator::computeLocalEnergy(
      * */
 
     double r2 = 0;
-    for (unsigned int i = 0; i < particles.size(); i++){
+    unsigned int N = particles.size();
+    for (unsigned int i = 0; i < N; i++){
         auto position = particles[i]->getPosition();
         for (unsigned int i = 0; i<particles[0]->getNumberOfDimensions(); i++)
             r2 += position[i]*position[i];
@@ -38,5 +39,5 @@ double HarmonicOscillator::computeLocalEnergy(
     // m = omega = 1
     double potentialEnergy = 0.5 * r2;
     double kineticEnergy   = waveFunction.computeDoubleDerivative(particles)*-0.5;
-    return kineticEnergy + potentialEnergy;
+    return (kineticEnergy + potentialEnergy)/N;
 }
