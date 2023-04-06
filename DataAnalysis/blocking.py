@@ -1,6 +1,10 @@
 from numpy import log2, zeros, mean, var, sum, loadtxt, arange, \
                   array, cumsum, dot, transpose, diagonal, floor
 from numpy.linalg import inv
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+OUTPUT_DIR = "/home/giammi/Desktop/FYS4411-Project1/Outputs"
 
 def block(x):
     # preliminaries
@@ -48,3 +52,30 @@ def block(x):
 
 
 
+if __name__ =="__main__":
+    print(f"N particles & \t\t E & \t\t std(E) \\\\")
+    N_part_list = [10, 50,]# 100]
+    threadnums = np.arange(8)
+    #import sampled energies
+    energies=np.empty(0)
+    errors = np.empty(0)
+    for N_particles in N_part_list:
+        all_energies = np.empty(0)
+        for thread in threadnums:
+            filename="sampledEnergies_" + str(N_particles) + "_" + str(thread) + ".bin"
+            x = np.fromfile( os.path.join(OUTPUT_DIR, filename), dtype=float)
+            all_energies= np.append(all_energies, x)
+
+        avg_energy = np.mean(all_energies)
+        #block gives variance, want std.
+        error = np.sqrt(block(x))
+        energies = np.append(energies, avg_energy)
+        errors = np.append(errors, error)
+        print(f"{N_particles} & \t\t {avg_energy} & \t\t {error} \\\\")
+
+    plt.errorbar(N_part_list, energies, errors )
+    plt.xlabel("number of particles")
+    plt.ylabel("energy estimate")
+    plt.grid(visible=True)
+    #plt.savefig("energy_estimates.pdf", bbox_inches='tight')
+    plt.show()
