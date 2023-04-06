@@ -28,7 +28,8 @@ xx, yy = np.meshgrid(x_coords, y_coords)
 # Compute the distance of each slot from the center of the matrix
 r2 = (xx)**2 + (yy)**2
 plt.plot(r2.reshape(-1), log_hist.reshape(-1), linestyle='none', marker='.')
-plt.show()
+coeffs, var = np.polyfit(r2, log_hist, deg=1, cov=True )
+print(f"alpha = {coeffs[1]} +/- {np.sqrt(var[1,1])} ")
 #get histogram along z axis:
 #hist_z = np.sum(HIST_TOT, axis=(0,1))
 
