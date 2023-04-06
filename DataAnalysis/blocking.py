@@ -4,8 +4,7 @@ from numpy.linalg import inv
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-OUTPUT_DIR = "/home/giammi/Desktop/FYS4411-Project1/Outputs"
-
+from path import OUTPUT_DIR
 def block(x):
     # preliminaries
     d = log2(len(x))
@@ -54,7 +53,7 @@ def block(x):
 
 if __name__ =="__main__":
     print(f"N particles & \t\t E & \t\t std(E) \\\\")
-    N_part_list = [10, 50,]# 100]
+    N_part_list = [10, 50, 100]
     threadnums = np.arange(8)
     #import sampled energies
     energies=np.empty(0)
@@ -73,7 +72,7 @@ if __name__ =="__main__":
         errors = np.append(errors, error)
         print(f"{N_particles} & \t\t {avg_energy} & \t\t {error} \\\\")
 
-    plt.errorbar(N_part_list, energies, errors )
+    plt.errorbar(N_part_list, energies, yerr=errors, linestyle='none', marker='.', capsize=10 )
     plt.xlabel("number of particles")
     plt.ylabel("energy estimate")
     plt.grid(visible=True)
