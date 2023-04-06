@@ -16,7 +16,7 @@ def get_histogram(N, NX=100, NY=100, NZ=100):
 HIST_TOT = get_histogram(10)
 hist_xy = np.sum(HIST_TOT, axis=2)
 #attempt fit to a gaussian:
-log_hist = np.log(hist_xy).reshape(-1)
+log_hist = np.log(hist_xy)
 #need the distance from each slot to the center
 # Define the size of the matrix and the boundaries
 size = 100
@@ -26,9 +26,8 @@ x_coords = np.linspace(x_min, x_max, size)
 y_coords = np.linspace(y_min, y_max, size)
 xx, yy = np.meshgrid(x_coords, y_coords)
 # Compute the distance of each slot from the center of the matrix
-center_x, center_y = (x_max - x_min) / 2, (y_max - y_min) / 2
-r2 = (xx - center_x)**2 + (yy - center_y)**2
-plt.plot(r2, log_hist)
+r2 = (xx)**2 + (yy)**2
+plt.plot(r2.reshape(-1), log_hist.reshape(-1), linestyle='none', marker='.')
 plt.show()
 #get histogram along z axis:
 #hist_z = np.sum(HIST_TOT, axis=(0,1))
