@@ -1,8 +1,12 @@
 # Variational Monte Carlo solver for a Bose-Einstein condensate
+![Languages](https://img.shields.io/badge/Languages-C%2B%2B%20%7C%20Python-blue)
+![Size](https://img.shields.io/github/repo-size/DavidSvejda2507/FYS4411-Project1)
 
 This repository contains the code for the first project of the course [FYS4411 (spring 2023)](https://github.com/CompPhysics/ComputationalPhysics2).
 This was forked from this template [repository](https://github.com/mortele/variational-monte-carlo-fys4411.git), whose authors are thankfully acknowledged. 
  
+### Requirements
+The code is written in C++. To compile it, you need to have the [nlopt library](https://nlopt.readthedocs.io/en/latest/) and [OpenMP](https://www.openmp.org/) installed. The data analysis is written in python.
 
 ### Compiling and running the project
 Provided Cmake is installed, compile by running the script `compile_project` via
