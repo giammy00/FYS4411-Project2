@@ -28,6 +28,13 @@ There are two ways of running the code.
 
 2. If the input file contains the line `calculateGradients=0`, the code will __NOT__ compute the gradients. This is meant to spare the computational costs when the wave function is already optimized. It will output a lot of files in the `Outputs` folder, which contain the sampled energies and the one-body histograms (in binary format).
 
+### Data Analysis
+The python scripts for the data analysis are contained in the `DataAnalysis` folder, they assume that a simulation has been run without calculating gradients.
+
+* `onebodydensity.py` computes and plots the histograms and the corresponding gaussian fit.
+* `blocking.py` contains the blocking function provided by [Marius Jonsson](https://github.com/computative/block) and uses it to analyse the simulation data.
+
 ## Authors
-[Gianmarco Puleo](https://github.com/giammy00) <br>
 [David Svejda](https://github.com/DavidSvejda2507)<br>
+[Gianmarco Puleo](https://github.com/giammy00) <br>
+
