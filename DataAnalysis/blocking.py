@@ -52,7 +52,7 @@ def block(x):
 
 
 if __name__ =="__main__":
-    print(f"N particles & \t\t E & \t\t std(E) \\\\")
+    print(f"$N$ & \t\t $E$ & \t\t $\\sigma$ & $\\eta$ &  var$(E/N)$ \\\\")
     N_part_list = [10, 50, 100]
     threadnums = np.arange(8)
     #import sampled energies
@@ -66,15 +66,17 @@ if __name__ =="__main__":
             all_energies= np.append(all_energies, x)
 
         avg_energy = np.mean(all_energies)
+        variance_energy = np.var(all_energies)
         #block gives variance, want std.
         error = np.sqrt(block(x))
         energies = np.append(energies, avg_energy)
         errors = np.append(errors, error)
-        print(f"{N_particles} & \t\t {avg_energy} & \t\t {error} \\\\")
+        print(f"{N_particles} & \t {avg_energy:.6f} & \t {error:.1e} & {avg_energy/(1+np.sqrt(2)):.6f} & \
+              {variance_energy:.1e} \\\\")
 
-    plt.errorbar(N_part_list, energies, yerr=errors, linestyle='none', marker='.', capsize=10 )
-    plt.xlabel("number of particles")
-    plt.ylabel("energy estimate")
-    plt.grid(visible=True)
-    #plt.savefig("energy_estimates.pdf", bbox_inches='tight')
-    plt.show()
+    # plt.errorbar(N_part_list, energies, yerr=errors, linestyle='none', marker='.', capsize=10 )
+    # plt.xlabel("number of particles")
+    # plt.ylabel("energy estimate")
+    # plt.grid(visible=True)
+    # #plt.savefig("energy_estimates.pdf", bbox_inches='tight')
+    # plt.show()
