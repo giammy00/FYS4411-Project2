@@ -63,35 +63,46 @@ void RestrictedBoltzmannMachine::InitialisePositions(std::vector<std::unique_ptr
     quantities that are useful in the computation of Psi (and of the gradients). 
     */
     m_SumSquares = 0.0;
-    m_SumXw = std::vector<double>(m_Nvisible, 0.0);
-    m_expSumXw = std::vector<double>(m_Nvisible);
+    std::vector<double> bPlusSumXw = std::vector<double>(m_Nhidden, 0.0)  ;
+    m_expBPlusSumXw = std::vector<double>(m_Nhidden);
     m_productTerm = 1.0;
     double tmp1 ;
     double X_i ; 
     for(unsigned int i =0 ; i<m_Nvisible; i++){
         //visible node i corresponds to 
         //position i%2 of particle i/2 
-        X_i = particles[i%2]->positions[i/2];
+        X_i = particles[i/2]->positions[i%2];
         tmp1 = X_i -(m_trainableParameters->a[i]); 
         tmp1*=tmp1;
         m_SumSquares+=tmp1;
-        for(unsigned_int j=0; j<m_Nhidden; j++){
-            m_SumXw[j]+=X_i * m_trainableParameters->W[i][j];
+        for(unsigned int j=0; j<m_Nhidden; j++){
+            bPlusSumXw[j]+=X_i * m_trainableParameters->W[i][j];
         }
     }
-    for(unsigned_int j=0; j<m_Nhidden; j++){
-        m_SumXw[j]/=m_sigma2;
-        m_expSumXw[j] = exp(m_trainableParameters->b[j] + m_SumXw[j]);
-        m_productTerm*=(1.0+m_expSumXw[j]);
+
+    for(unsigned int j=0; j<m_Nhidden; j++){
+        bPlusSumXw[j]/=m_sigma2;
+        bPlusSumXw[j]+=m_trainableParameters->b[j];
+        m_expBPlusSumXw[j] = exp( bPlusSumXw[j]);
+        m_productTerm*=(1.0+m_expBPlusSumXw[j]);
     }
     m_SumSquares/=(2*m_sigma2);
     m_gaussianTerm = exp(m_SumSquares);
 }
 
 void RestrictedBoltzmannMachine::adjustPosition(std::vector<std::unique_ptr<class Particle>>& particles, 
-                                                int index, std::vector<double> step){
-
+                                                int index, std::vector<double> step)
+    //note. Particle index , position[i] (i=0,1) corresponds to visible node of index 2*index+i
+{
     //need to update  all cached stuff!!!
+    double delta ;
+    for(unsigned int j=0; j<m_Nhidden; j++){
+        //change in the \sum_i X_i w_{ij}
+        delta = (   step[0]*m_trainableParameters->W[2*index][j]+
+                    step[1]*m_trainableParameters->W[2*index+1][j]  ) /m_sigma2;//delta_k *w_ik /sigma_^2
+        m_expBPlusSumXw[j]*=exp(delta);
+    }
+
 }
 
 

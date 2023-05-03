@@ -29,6 +29,5 @@ class RestrictedBoltzmannMachine : public WaveFunction {
         double m_gaussianTerm;
         double m_productTerm;
         double m_SumSquares;
-        std::vector<double> m_SumXw;//stores sum(X_i * w_{ik} ) at m_SumXw[k]
-        std::vector<double> m_expSumXw;//store exp(b_k+m_SumXw)
+        std::vector<double> m_expBPlusSumXw;//store exp(b_k+m_SumXw)
 };
