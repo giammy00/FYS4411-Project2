@@ -122,7 +122,8 @@ void RestrictedBoltzmannMachine::adjustPosition(std::vector<std::unique_ptr<clas
     m_gaussianTerm*=exp(  - delta )  ;
 }
 
-
+//NOTE: THERE IS A CACHE i.e. some of the quantities needed for the computation are already stored in the class
+//(see functions above)
 double computeDoubleDerivative(std::vector<std::unique_ptr<class Particle>>& particles){
     //compute the laplacian of the wave function (see ipynb on boltzmann machines)
 
@@ -130,6 +131,10 @@ double computeDoubleDerivative(std::vector<std::unique_ptr<class Particle>>& par
 
 std::vector<double> getdPhi_dParams(std::vector<std::unique_ptr<class Particle>>& particles){
     //compute the derivative of log(Psi) wrt variational parameters (see same notes, again)
+    //note that the parameters are stored in a struct containing three std::vector! BUT we should return 
+    //ONE flattenened vector , like : [ d/da1, d/da2, ..., d/daM, d/db1..., d/dbN, d/dW11, d/dW12...., d/dWnn ]......
+    // easiest way: loop through the vectors in the struct , one by one, compute the derivative wrt that parameter
+    // append it to the vec with .push_back( )
 }
 
 
