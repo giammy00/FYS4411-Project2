@@ -200,7 +200,7 @@ std::vector<double> RestrictedBoltzmannMachine::quantumForce(std::vector<std::un
 }
 
 std::vector<double> RestrictedBoltzmannMachine::quantumForceMoved(std::vector<std::unique_ptr<class Particle>>& particles, int index, std::vector<double>& step){
-    //compute quantum force (see photo on whatsapp)
+
     std::vector<double> QF;
     std::vector<double> X;
     double a_0, a_1;
@@ -219,4 +219,16 @@ std::vector<double> RestrictedBoltzmannMachine::quantumForceMoved(std::vector<st
     }
     QF.push_back(delta+sum);
     return QF;
+}
+
+double RestrictedBoltzmannMachine::phiRatio(std::vector<std::unique_ptr<class Particle>>& particles, int index, std::vector<double>& step){
+    // computated by taking the (phi(new)/phi(old))**2 from the expression (32) in the lecture note
+    double A;
+    double a_0, a_1;
+    std::vector<double> X;
+    a_0=m_trainableParameters->a[0+index];
+    a_1=m_trainableParameters->a[1+index];
+    A=exp((step[0]*(a_0-X[0])+step[1]*(a_1-X[1]))/m_sigma2);
+
+    
 }
