@@ -13,6 +13,7 @@ RBMParams initWeights(int nVisible, int Nhidden,  Random * rng);
 
 
 class RestrictedBoltzmannMachine : public WaveFunction {
+    /////Implementation of a RBM marginal probability density function
     public:
         RestrictedBoltzmannMachine(double sigma, RBMParams * trainableParameters);
         double evaluate(std::vector<std::unique_ptr<class Particle>>& particles);
@@ -23,6 +24,8 @@ class RestrictedBoltzmannMachine : public WaveFunction {
         std::vector<double> quantumForceMoved(std::vector<std::unique_ptr<class Particle>>& particles, int index, std::vector<double>& step);
         double phiRatio(std::vector<std::unique_ptr<class Particle>>& particles, int index, std::vector<double>& step);
         std::vector<double> getdPhi_dParams(std::vector<std::unique_ptr<class Particle>>& particles);
+        double getCoulombEnergy(){return m_coulombEnergy;};
+        double getSumR2(){return m_sumR2;};
     private:
     //parameters of restricted boltzmann machine
         double m_sigma ;
@@ -32,4 +35,6 @@ class RestrictedBoltzmannMachine : public WaveFunction {
         double m_gaussianTerm;
         double m_productTerm;
         std::vector<double> m_expBPlusSumXw;//store exp(b_k+m_SumXw)
+        std::vector<std::vector<double>> m_inverseDistances;
+
 };
