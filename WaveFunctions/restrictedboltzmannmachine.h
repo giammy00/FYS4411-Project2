@@ -14,15 +14,15 @@ RBMParams initWeights(int nVisible, int Nhidden,  Random * rng);
 
 class RestrictedBoltzmannMachine : public WaveFunction {
     public:
-        RestrictedBoltzmannMachine(double sigma, RBMParams * trainableParameters);
-        double evaluate(std::vector<std::unique_ptr<class Particle>>& particles);
-        void InitialisePositions(std::vector<std::unique_ptr<class Particle>>& particles);
-        void adjustPosition(std::vector<std::unique_ptr<class Particle>>& particles, int index, std::vector<double> step) ;
-        double computeDoubleDerivative(std::vector<std::unique_ptr<class Particle>>& particles);
-        std::vector<double> quantumForce(std::vector<std::unique_ptr<class Particle>>& particles, int index);
-        std::vector<double> quantumForceMoved(std::vector<std::unique_ptr<class Particle>>& particles, int index, std::vector<double>& step);
-        double phiRatio(std::vector<std::unique_ptr<class Particle>>& particles, int index, std::vector<double>& step);
-        std::vector<double> getdPhi_dParams(std::vector<std::unique_ptr<class Particle>>& particles);
+        RestrictedBoltzmannMachine(double sigma, RBMParams * trainableParameters);//done
+        double evaluate(std::vector<std::unique_ptr<class Particle>>& particles);//done
+        void InitialisePositions(std::vector<std::unique_ptr<class Particle>>& particles);//done
+        void adjustPosition(std::vector<std::unique_ptr<class Particle>>& particles, int index, std::vector<double> step) ;//done
+        double computeDoubleDerivative(std::vector<std::unique_ptr<class Particle>>& particles);//done
+        std::vector<double> quantumForce(std::vector<std::unique_ptr<class Particle>>& particles, int index);//done
+        std::vector<double> quantumForceMoved(std::vector<std::unique_ptr<class Particle>>& particles, int index, std::vector<double>& step);//done
+        double phiRatio(std::vector<std::unique_ptr<class Particle>>& particles, int index, std::vector<double>& step);//done
+        std::vector<double> getdPhi_dParams(std::vector<std::unique_ptr<class Particle>>& particles);//done
     private:
     //parameters of restricted boltzmann machine
         double m_sigma ;

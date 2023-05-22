@@ -229,6 +229,16 @@ double RestrictedBoltzmannMachine::phiRatio(std::vector<std::unique_ptr<class Pa
     a_0=m_trainableParameters->a[0+index];
     a_1=m_trainableParameters->a[1+index];
     A=exp((step[0]*(a_0-X[0])+step[1]*(a_1-X[1]))/m_sigma2);
+    double product_changed=1.0;// 1+exp(bj+sum xiwij/sigma_2+step*wkj/sigma_2)
+    double W_0j, W_1j;
+    for (unsigned int j =0 ; j<m_Nhidden; j++){
+        W_0j=m_trainableParameters->W[index+0][j];
+        W_1j=m_trainableParameters->W[index+1][j];
+        product_changed*=1+m_expBPlusSumXw[j]*exp(step[0]*W_0j/m_sigma2+step[1]*W_1j/m_sigma2);
+
+    }
+
+    return A*product_changed/m_productTerm;
 
     
 }
