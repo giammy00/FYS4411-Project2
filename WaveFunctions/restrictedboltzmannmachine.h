@@ -32,6 +32,12 @@ class RestrictedBoltzmannMachine : public WaveFunction {
         unsigned int m_Nhidden, m_Nvisible;
         double m_gaussianTerm;
         double m_productTerm;
+        //store proposal for product of terms (1+exp(sj))
+        double m_proposalProduct;
+        //stores exp(delta s_j)
+        std::vector<double> m_proposalProductExpDelta; 
+        //store exp(delta gaussian term)
+        double m_proposalGaussianExpDelta;
         std::vector<double> m_expBPlusSumXw;//store exp(b_k+m_SumXw)
         std::vector<std::vector<double>> m_inverseDistances;
 

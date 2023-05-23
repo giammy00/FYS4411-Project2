@@ -49,6 +49,7 @@ RestrictedBoltzmannMachine::RestrictedBoltzmannMachine(double sigma, RBMParams *
     m_trainableParameters = trainableParameters;
     m_Nhidden = trainableParameters->b.size();
     m_Nvisible = trainableParameters->a.size();
+    m_proposalProductExpDelta = std::vector<double>(m_Nhidden, 0.0);
 }
 double RestrictedBoltzmannMachine::evaluate(std::vector<std::unique_ptr<class Particle>>& particles){
     //return Psi . NOT Psi^2
@@ -107,25 +108,27 @@ void RestrictedBoltzmannMachine::adjustPosition(std::vector<std::unique_ptr<clas
 {
     //need to update  all cached stuff!!!
     //update product term and cached exp
-    m_productTerm = 1.0; 
+    //m_productTerm = 1.0; 
     //productTerm needs actually to be recomputed from scratch, but useful to compute it here,
     //because there is here a loop over hidden nodes ....could also compute the product term in .evaluate()?
     //yes, but it would take another loop over hidden nodes. so we just exploit the loop which is here.
                         
     double delta ;
+
     for(unsigned int j=0; j<m_Nhidden; j++){
     //change in the \sum_i X_i w_{ij}
-        delta = (   step[0]*m_trainableParameters->W[2*index][j]+
-                    step[1]*m_trainableParameters->W[2*index+1][j]  ) /m_sigma2;//delta_k *w_ik /sigma_^2
-        m_expBPlusSumXw[j]*=exp(delta);
-        m_productTerm*=(1.0+ m_expBPlusSumXw[j]);
+        // delta = (   step[0]*m_trainableParameters->W[2*index][j]+
+        //             step[1]*m_trainableParameters->W[2*index+1][j]  ) /m_sigma2;//delta_k *w_ik /sigma_^2
+        m_expBPlusSumXw[j]*=m_proposalProductExpDelta[j];//it is exp(delta(s_j) )
     }
-    
+    //
+    // was already computed in phiratio!
+    m_productTerm=m_proposalProduct;
     //update gaussian term
-    std::vector<double> X = particles[index]->getPosition(); 
-    delta = step[0]*(  step[0]+2.0*(X[0]-m_trainableParameters->a[2*index])   ) + 
-            step[1]*(  step[1]+2.0*(X[1]-m_trainableParameters->a[2*index+1]) );
-    m_gaussianTerm*=exp(  - delta )  ;
+    // std::vector<double> X = particles[index]->getPosition(); 
+    // delta = step[0]*(  step[0]+2.0*(X[0]-m_trainableParameters->a[2*index])   ) + 
+    //         step[1]*(  step[1]+2.0*(X[1]-m_trainableParameters->a[2*index+1]) );
+    m_gaussianTerm*= m_proposalGaussianExpDelta   ; //it is exp(delta(gaussian exponent))
 
 }
 
@@ -196,7 +199,7 @@ std::vector<double> RestrictedBoltzmannMachine::getdPhi_dParams(std::vector<std:
 
 
 std::vector<double> RestrictedBoltzmannMachine::quantumForce(std::vector<std::unique_ptr<class Particle>>& particles, int index){
-    //compute quantum force
+    //computes quantum force at current position
     std::vector<double> QF = std::vector<double>(2);
     std::vector<double> X;
     double a_0, a_1;
@@ -223,7 +226,7 @@ std::vector<double> RestrictedBoltzmannMachine::quantumForce(std::vector<std::un
 }
 
 std::vector<double> RestrictedBoltzmannMachine::quantumForceMoved(std::vector<std::unique_ptr<class Particle>>& particles, int index, std::vector<double>& step){
-
+    //computes the quantum force in the proposal position during metropolis hastings.
     std::vector<double> QF;
     QF.reserve(2);
     std::vector<double> X;
@@ -235,16 +238,15 @@ std::vector<double> RestrictedBoltzmannMachine::quantumForceMoved(std::vector<st
     sum0=0.0;
     sum1=0.0;
     X= particles[index]->getPosition();
-    a_0=m_trainableParameters->a[0+index];
-    a_1=m_trainableParameters->a[1+index];
+    a_0=m_trainableParameters->a[0+2*index];
+    a_1=m_trainableParameters->a[1+2*index];
     sum0-=(X[0]+step[0]-a_0) ;
     sum1-=(X[1]+step[1]-a_1) ;
 
     for(unsigned int j =0 ; j<m_Nhidden; j++){
-        W_0j=m_trainableParameters->W[index+0][j];
-        W_1j=m_trainableParameters->W[index+1][j];
-        delta = (step[0]*W_0j+step[1]*W_1j)/m_sigma2;
-        tmp_exp = m_expBPlusSumXw[j]*exp(delta);
+        W_0j=m_trainableParameters->W[2*index+0][j];
+        W_1j=m_trainableParameters->W[2*index+1][j];
+        tmp_exp = m_expBPlusSumXw[j]*m_proposalProductExpDelta[j];
         sum0+=W_0j/(1.0+1.0/tmp_exp);
         sum1+=W_1j/(1.0+1.0/tmp_exp);
     }
@@ -255,23 +257,28 @@ std::vector<double> RestrictedBoltzmannMachine::quantumForceMoved(std::vector<st
 }
 
 double RestrictedBoltzmannMachine::phiRatio(std::vector<std::unique_ptr<class Particle>>& particles, int index, std::vector<double>& step){
-    // computated by taking the (phi(new)/phi(old))**2 from the expression (32) in the lecture note
+    // computes (psi(new)/psi(old))**2
     double A;
     double a_0, a_1;
-    std::vector<double> X;
-    a_0=m_trainableParameters->a[0+index];
-    a_1=m_trainableParameters->a[1+index];
-    A=exp((step[0]*(a_0-X[0])+step[1]*(a_1-X[1]))/m_sigma2);
-    double product_changed=1.0;// 1+exp(bj+sum xiwij/sigma_2+step*wkj/sigma_2)
+    std::vector<double> X = particles[index]->getPosition();
+    a_0=m_trainableParameters->a[0+2*index];
+    a_1=m_trainableParameters->a[1+2*index];
+    A=  -step[0]*(2*(X[0]-a_0)+step[0])
+        -step[1]*(2*(X[1]-a_1)+step[1]);
+    A=exp(A);
+    //cache proposal quantities, used in adjustPosition (no need to recompute them!!)
+    m_proposalGaussianExpDelta = A;
+    m_proposalProduct=1.0;//1+exp(bj+sum xiwij/sigma_2+step*wkj/sigma_2)
     double W_0j, W_1j;
     for (unsigned int j =0 ; j<m_Nhidden; j++){
-        W_0j=m_trainableParameters->W[index+0][j];
-        W_1j=m_trainableParameters->W[index+1][j];
-        product_changed*=1+m_expBPlusSumXw[j]*exp(step[0]*W_0j/m_sigma2+step[1]*W_1j/m_sigma2);
-
+        W_0j=m_trainableParameters->W[2*index+0][j];
+        W_1j=m_trainableParameters->W[2*index+1][j];
+        m_proposalProductExpDelta[j] = exp( (step[0]*W_0j+step[1]*W_1j)/m_sigma2);
+        m_proposalProduct*=1.0+m_expBPlusSumXw[j]*m_proposalProductExpDelta[j];
     }
-
-    return A*product_changed/m_productTerm;
+    A*=m_proposalProduct/m_productTerm;
+    A*=A;//want the square of psi, not psi
+    return A;
 
     
 }
