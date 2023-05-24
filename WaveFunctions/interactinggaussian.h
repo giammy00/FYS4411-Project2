@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __INTERACTING_GAUSSIAN__
+#define __INTERACTING_GAUSSIAN__
 
 #include <memory>
 
@@ -23,3 +24,4 @@ private:
     void slowDoubleDerivative(std::vector<std::unique_ptr<class Particle>>& particles, double nabla2_);
     void slowQuantumForce(std::vector<std::unique_ptr<class Particle>>& particles, int index, std::vector<double>& force);
 };
+#endif

@@ -1,5 +1,5 @@
-#pragma once
-
+#ifndef __SIMPLE_GAUSSIAN_3D__
+#define __SIMPLE_GAUSSIAN_3D__
 #include <memory>
 
 #include "wavefunction.h"
@@ -17,3 +17,4 @@ public:
     double phiRatio(std::vector<std::unique_ptr<class Particle>>& particles, int index, std::vector<double>& step);
     std::vector<double> getdPhi_dParams(std::vector<std::unique_ptr<class Particle>>& particles);
 };
+#endif

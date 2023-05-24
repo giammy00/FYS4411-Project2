@@ -5,7 +5,9 @@
 #include <chrono>
 #include <string>
 #include <nlopt.hpp>
+#include <Math/random.h>
 #include "utils.h"
+#include "rbmparams.hpp"
 using namespace std;
 /*
 h-bar = 1
@@ -17,7 +19,7 @@ omega = 1
 int main(int argc, char *argv[]) {
 
     ///////// Variable declarations and default values //////////////////
-    std::vector<double> wfParams = std::vector<double>{0.5, 1.};
+
     //set a maximum number of iterations for gd
     unsigned int  nMaxIter = 3E0;
     //set tolerance for convergence of gd
@@ -26,7 +28,7 @@ int main(int argc, char *argv[]) {
     SimulationParams simPar ;
     //hyperparameters for gradient descent:
     GdParams gd_parameters ;
-    std::string OPTIMIZATION_ALGORITHM = "LBFGS";
+
     if (argc>1){
         // Input filename from command line
         std::string input_filename = argv[1];
@@ -55,10 +57,6 @@ int main(int argc, char *argv[]) {
             {gd_parameters.learning_rate = std::stod(value);}
             else if (name == "momentum")
             {gd_parameters.momentum = std::stod(value);}
-            else if (name == "alpha")
-            {wfParams[0] = std::stod(value);}
-            else if (name == "beta")
-            {wfParams[1] = std::stod(value);}
             else if (name == "gamma")
             {simPar.gamma = std::stod(value);}
             else if (name == "nMaxIter")
@@ -77,10 +75,14 @@ int main(int argc, char *argv[]) {
             {simPar.omega = std::stod(value);}
             else if (name == "stepLength")
             {simPar.stepLength = std::stod(value);}
+            else if (name == "sigma")
+            {simPar.sigma = std::stod(value);}
             else if (name == "filename")
             {simPar.filename = value;}
             else if (name == "numberOfDimensions")
             {simPar.numberOfDimensions=std::stoi(value);}
+            else if (name == "numberOfHiddenNodes")
+            {simPar.N_hidden=std::stoi(value);}
             else
             {
                 std::cout << "Error reading file." << std::endl;
@@ -94,16 +96,17 @@ int main(int argc, char *argv[]) {
     "Program will be terminated." << std::endl;
     exit(1);
     }
+    std::string OPTIMIZATION_ALGORITHM = "LBFGS";
     if (argc>2){
         std::string algo = argv[2];
         if (algo == "GD"){
             OPTIMIZATION_ALGORITHM=algo;
         }
         else if (algo == "LBFGS") {
-            ; //do nothing already set
+            ; //do nothing already set, just to display error if not properly set.
         }
         else {
-            cout << "Error. Alorithm not recognized.\n Supported algorithms:  'GD' or 'LBFGS', defaults to LBFGS.\n " <<
+            cout << "Error. Algorithm not recognized.\n Supported algorithms:  'GD' or 'LBFGS', defaults to LBFGS.\n " <<
                 "Please use as: " << argv[0] << " <settings_file> [ , <algorithm>].\n" <<  endl;
             exit(1);
         }
@@ -122,24 +125,41 @@ int main(int argc, char *argv[]) {
     auto t1 = high_resolution_clock::now();
     #endif
 
+    //
+    
+    ///// THE FOLLOWING RUNS GRADIENT DESCENT WITH THE TWO IMPLEMENTED METHODS!
     if (simPar.calculateGradients){
         cout << "Optimizing wave function with gradient method " << OPTIMIZATION_ALGORITHM << endl;
-        double optimal_energy; 
-        // LBFGS ALGORITHM : 
-        nlopt::opt opt(nlopt::LD_LBFGS, 2);
+        double optimal_energy;
+        //this rng is used to construct the wavefunction parameters
+        auto rngP =  Random(0);
+        RBMParams parameters = RBMParams(2*simPar.numberOfParticles, //number of visible nodes
+                                        simPar.N_hidden,  //number of hidden nodes   
+                                        &rngP);
+        simPar.rbmParamsPtr=&parameters;
         if (OPTIMIZATION_ALGORITHM=="GD"){
             momentumOptimizer opt(2, &gd_parameters);
+            opt.set_min_objective(wrapSimulation, (void *) & simPar );
+            opt.set_maxeval(nMaxIter);
+            opt.set_ftol_abs(energyTol);
+            opt.optimize(parameters.m_allParams, optimal_energy);
         }
-        opt.set_min_objective(wrapSimulation, (void *) & simPar );
-        opt.set_maxeval(nMaxIter);
-        opt.set_ftol_abs(energyTol);
-        opt.optimize(wfParams, optimal_energy);
+        else{
+            // LBFGS ALGORITHM BY DEFAULT: 
+            nlopt::opt opt(nlopt::LD_LBFGS, 2);
+            opt.set_min_objective(wrapSimulation, (void *) & simPar );
+            opt.set_maxeval(nMaxIter);
+            opt.set_ftol_abs(energyTol);
+            opt.optimize(parameters.m_allParams, optimal_energy);
+        }
+        parameters.saveParams("./Outputs/optimizedRBMParams.bin");
     }
     //////////////// THE FOLLOWING LINE DOES A LONG SIMULATION WITHOUT GRADIENT COMPUTATION
     else{
         cout << "Running simulation without computing gradients.\n " <<
-        "If you wish to enable gradient method, edit simulation_input.txt. " << endl; 
-        wrapSimulationLargeScale( wfParams, (void*) & simPar);
+        "If you wish to enable gradient method, set calculateGradients=0 in simulation_input.txt. " << endl; 
+        RBMParams parameters(2*simPar.numberOfParticles, simPar.N_hidden, "./Outputs/optimizedRBMParams.bin");
+        wrapSimulationLargeScale( parameters.m_allParams, (void*) & simPar);
     }
     #ifdef TIMEING
     auto t2 = high_resolution_clock::now();

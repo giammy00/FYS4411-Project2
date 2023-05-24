@@ -1,5 +1,5 @@
-#pragma once
-
+#ifndef __SYSTEM__
+#define __SYSTEM__
 #include <memory>
 #include <vector>
 
@@ -37,3 +37,4 @@ private:
     std::vector<std::unique_ptr<class Particle>> m_particles;
 };
 
+#endif

@@ -1,6 +1,9 @@
+#ifndef __UTILS__
+#define __UTILS__
 #include<vector>
 #include <memory>
 #include"sampler.h"
+#include"rbmparams.hpp"
 //define a struct as a container of simulation params.
 struct simulationParams{
     unsigned int numberOfDimensions;
@@ -13,6 +16,9 @@ struct simulationParams{
     double a_ho;
     double stepLength;
     std::string filename;
+    unsigned int N_hidden;//number of hidden nodes in the RBM 
+    RBMParams * rbmParamsPtr;//a pointer to a class instance RBMParams
+    double sigma;
     int base_seed;//store base seed , will be manipulated in different ways in every simulation
 };
 struct gdParams{
@@ -61,3 +67,4 @@ class momentumOptimizer {
     double m_f_abs_tol=0.01; 
 };
 unsigned int *** init_3d_array(unsigned int nx,unsigned int ny,unsigned int nz);
+#endif

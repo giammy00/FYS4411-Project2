@@ -1,5 +1,5 @@
-#pragma once
-
+#ifndef __INTERACTING_GAUSSIAN_3D__
+#define __INTERACTING_GAUSSIAN_3D__
 #include <memory>
 
 #include "wavefunction.h"
@@ -25,3 +25,4 @@ private:
     void slowDoubleDerivative(std::vector<std::unique_ptr<class Particle>>& particles, double nabla2_);
     void slowQuantumForce(std::vector<std::unique_ptr<class Particle>>& particles, int index, std::vector<double>& force);
 };
+#endif

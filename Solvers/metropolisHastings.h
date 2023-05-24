@@ -1,5 +1,5 @@
-#pragma once
-
+#ifndef __METROPOLIS_HASTINGS__
+#define __METROPOLIS_HASTINGS__
 #include <memory>
 
 #include "montecarlo.h"
@@ -13,3 +13,4 @@ public:
             class WaveFunction& waveFunction,
             std::vector<std::unique_ptr<class Particle>>& particles);
 };
+#endif

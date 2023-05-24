@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(project_1_fys4411)
+project(project_2_fys4411)
 
 # Set CXX standard to C++14
 set(CMAKE_CXX_STANDARD 14)

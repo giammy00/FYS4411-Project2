@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __SAMPLER__
+#define __SAMPLER__
 #include <memory>
 #include <string>
 #include <iostream>
@@ -34,7 +35,7 @@ public:
 
     std::vector<double> computeGradientEtrial();
     void initiateFile(std::string filename);
-    void writeToFile(std::string filename);
+    void writeToFile(std::string filename , unsigned int nPrintedParams=2);
     virtual void writeHistogram();
 
 protected:
@@ -55,3 +56,4 @@ protected:
     //compute the gradient of the trial energy wrt variational parameters
     std::vector<double> m_waveFunctionParameters;
 };
+#endif

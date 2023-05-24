@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __SAMPLER_FINE_TUNE__
+#define __SAMPLER_FINE_TUNE__
 #include "sampler.h"
 #include<fstream>
 class SamplerFineTune: public Sampler {
@@ -19,3 +20,4 @@ public:
     int m_nz=100;
     double  m_xMin, m_xMax, m_yMin , m_yMax, m_zMin,  m_zMax ; 
 };
+#endif

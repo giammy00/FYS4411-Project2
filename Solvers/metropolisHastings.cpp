@@ -38,6 +38,9 @@ bool MetropolisHastings::step(
         noise.push_back(m_rng->nextGaussian(0,1)*sqrtdt);
         step.push_back(force[i]*dt*0.5 + noise[i]);
     }
+    //compute phiRatio is BEFORE call to quantumForceMoved, so the latter can exploit 
+    //the cached quantities from the former!
+    double phiRatio = waveFunction.phiRatio(particles, index, step);
     auto forceY = waveFunction.quantumForceMoved(particles, index, step);
     
 
@@ -55,7 +58,7 @@ bool MetropolisHastings::step(
         greensDiff -= temp*temp;
     }
 
-    double hastingsArticle = waveFunction.phiRatio(particles, index, step) * exp(greensDiff/(2*dt));
+    double hastingsArticle = phiRatio * exp(greensDiff/(2*dt));
 
     // For testing:
     // testGradient(waveFunction, particles, force, index);

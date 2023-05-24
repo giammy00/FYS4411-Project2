@@ -1,5 +1,5 @@
-#pragma once
-
+#ifndef __MONTECARLO__
+#define __MONTECARLO__
 #include <vector>
 #include <memory>
 
@@ -16,3 +16,4 @@ public:
 protected:
     std::unique_ptr<class Random> m_rng;
 };
+#endif

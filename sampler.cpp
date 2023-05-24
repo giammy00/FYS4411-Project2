@@ -101,7 +101,8 @@ void Sampler::transferWaveFunctionParameters(std::vector<double> parameters){
 
 void Sampler::printOutputToTerminal() {
     auto pa = m_waveFunctionParameters;
-    auto p = pa.size();
+    //auto p = pa.size();
+    unsigned int p = 2;//print only two parameters , no endless printout !
     std::vector<double> grad = computeGradientEtrial();
 
     cout << endl;
@@ -131,7 +132,8 @@ void Sampler::printOutputToTerminal() {
 
 void Sampler::printOutputToTerminalShort() {
     auto pa = m_waveFunctionParameters;
-    auto p = pa.size();
+    //auto p = pa.size();
+    unsigned int p = 2;//print only 2 params, avoid endless printout
     std::vector<double> grad = computeGradientEtrial();
 
     cout << endl;
@@ -139,7 +141,7 @@ void Sampler::printOutputToTerminalShort() {
     cout << " Ratio of accepted equilibration steps: " << ((double) m_numberOfAcceptedEquilibrationSteps) / ((double) m_equilibrationStepNumber) << endl;
     cout << " Ratio of accepted steps: " << ((double) m_numberOfAcceptedSteps) / ((double) m_stepNumber) << endl;
     cout << endl;
-    cout << " Number of parameters : " << p << endl;
+    cout << " Number of parameters : " << pa.size()<< endl;
     for (unsigned int i=0; i < p; i++) {
         cout << " Parameter " << i+1 << " : " << pa.at(i) << endl;
     }
@@ -171,21 +173,17 @@ void Sampler::computeAverages() {
 
 void Sampler::initiateFile(std::string filename){
     std::ofstream file (filename, std::ofstream::app);
-    file << "#n_particles" << '\t'
+    file << "n_particles" << '\t'
         << "n_dimensions" << '\t'
         << "n_steps" << '\t'
         << "n_accepted_steps" << '\t'
         << "E" << '\t'
         << "var" << '\t'
-        << "alpha" << '\t'
-        << "beta" << '\t'
-        << "a" << '\t'
-        << "gradient_alpha" << '\t'
-        << "gradient_beta"<< endl;
+        << "sigma" << endl;
     file.close();
 }
 
-void Sampler::writeToFile(std::string filename){
+void Sampler::writeToFile(std::string filename, unsigned int nPrintedParams){
     std::ofstream file (filename, std::ofstream::app);
     std::vector<double> grad = computeGradientEtrial();
     file << std::setprecision(10);

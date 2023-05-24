@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __PARTICLE__
+#define __PARTICLE__
 #include <vector>
 
 class Particle {
@@ -14,3 +15,4 @@ private:
     std::vector<double> m_position = std::vector<double>();
 };
 
+#endif

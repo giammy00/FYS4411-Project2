@@ -10,6 +10,7 @@
 #include "WaveFunctions/simplegaussian3d.h"
 #include "WaveFunctions/interactinggaussian.h"
 #include "WaveFunctions/interactinggaussian3d.h"
+#include "WaveFunctions/restrictedboltzmannmachine.h"
 #include "Hamiltonians/harmonicoscillator.h"
 #include "Hamiltonians/harmonicoscillator3d.h"
 #include "InitialStates/initialstate.h"
@@ -133,7 +134,6 @@ std::unique_ptr<class Sampler> runSimulation(
     auto rng = std::make_unique<Random>(seed);
     // Initialize particles
     // auto particles = setupNonOverlappingGaussianInitialState(numberOfDimensions, numberOfParticles, *rng, a_ho);
-    
     auto particles = setupNonOverlappingGaussianInitialState(P->numberOfDimensions, P->numberOfParticles, *rng, P->a_ho);
     // Construct a unique pointer to a new System
     
@@ -145,7 +145,8 @@ std::unique_ptr<class Sampler> runSimulation(
             // std::make_unique<SimpleGaussian>(params[0]),
             // std::make_unique<SimpleGaussian3D>(params[0], params[1]),
             // std::make_unique<InteractingGaussian>(params[0]),
-            std::make_unique<InteractingGaussian3D>(params[0], params[1]),
+            //std::make_unique<InteractingGaussian3D>(params[0], params[1]),
+            std::make_unique<RestrictedBoltzmannMachine>(P->sigma, P->rbmParamsPtr ),
             // Construct unique_ptr to solver, and move rng
             std::make_unique<MetropolisHastings>(std::move(rng)),
             //std::make_unique<Metropolis>(std::move(rng)),
@@ -220,7 +221,7 @@ unsigned int *** init_3d_array(unsigned int nx,unsigned int ny,unsigned int nz){
 	for ( j=1; j<nx; j++){
 		retPtr[j] = retPtr[j-1]+ny; 
 	}
-	retPtr[0][0]=(unsigned int *) malloc(nx*ny*nz*sizeof( double ));
+	retPtr[0][0]=(unsigned int *) malloc(nx*ny*nz*sizeof( unsigned int ));
 	//then loop through the matrix of pointers and assign the proper address to each of them:
 	for( i = 0; i<nx; i++ ) {
 		for( j=0; j<ny; j++){

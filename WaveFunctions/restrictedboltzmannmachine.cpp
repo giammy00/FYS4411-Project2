@@ -7,39 +7,6 @@
 #include "../Math/random.h"
 #include "../particle.h"
 
-RBMParams initWeights(int Nvisible, int Nhidden,  Random * rng){
-    //random initializer for trainable parameters of the restricted boltzmann machine
-    //parameters are stored in a struct 
-    RBMParams trainableParams ;
-    trainableParams.a.reserve(Nvisible);
-    trainableParams.b.reserve(Nhidden);
-    trainableParams.W.reserve(Nvisible);
-    double tmp;
-    //these factors are used to scale the initial random parameters. Arbitrary choice.
-    double norm_a = 1.0/Nvisible;
-    double norm_b = 1.0/Nhidden;
-    double norm_w = norm_a*norm_b;
-    //init weights a
-    for(size_t i = 0; i<Nvisible; i++){
-        tmp = rng->nextGaussian(0, norm_a);
-        trainableParams.a.push_back(tmp);
-    }
-    //init weights b
-    for(size_t i = 0; i<Nhidden; i++){
-        tmp = rng->nextGaussian(0, norm_b);
-        trainableParams.b.push_back(tmp);        
-    }
-    //init weights W
-    for(size_t i = 0; i<Nvisible; i++){
-        std::vector<double> tmp_arr(Nhidden);
-        //fill tmp array with random numbers
-        for(size_t j =0; j<Nhidden; j++){
-            tmp = rng->nextGaussian(0, norm_w);
-            tmp_arr[j] = tmp;
-        }
-        trainableParams.W.push_back(tmp_arr);
-    }
-}
 
 RestrictedBoltzmannMachine::RestrictedBoltzmannMachine(double sigma, RBMParams * trainableParameters){
 /*constructor of a Restricted Boltzmann machine wavefunction.
@@ -47,8 +14,9 @@ RestrictedBoltzmannMachine::RestrictedBoltzmannMachine(double sigma, RBMParams *
     m_sigma = sigma;
     m_sigma2 = sigma*sigma;//always need sigma2
     m_trainableParameters = trainableParameters;
-    m_Nhidden = trainableParameters->b.size();
-    m_Nvisible = trainableParameters->a.size();
+    m_Nhidden = trainableParameters->m_Nhidden;
+    m_Nvisible = trainableParameters->m_Nvisible;
+    m_numberOfParameters = m_Nvisible+m_Nhidden+m_Nvisible*m_Nhidden;
     m_proposalProductExpDelta = std::vector<double>(m_Nhidden, 0.0);
 }
 double RestrictedBoltzmannMachine::evaluate(std::vector<std::unique_ptr<class Particle>>& particles){
@@ -81,17 +49,17 @@ void RestrictedBoltzmannMachine::InitialisePositions(std::vector<std::unique_ptr
         //visible node i corresponds to 
         //position i%2 of particle i/2 
         X_i = particles[i/2]->getPosition()[i%2];
-        tmp1 = X_i -(m_trainableParameters->a[i]); 
+        tmp1 = X_i -(m_trainableParameters->m_a[i]); 
         tmp1*=tmp1;
         sumSquares+=tmp1;
         for(unsigned int j=0; j<m_Nhidden; j++){
-            bPlusSumXw[j]+=X_i * m_trainableParameters->W[i][j];
+            bPlusSumXw[j]+=X_i * m_trainableParameters->m_W[i][j];
         }
     }
 
     for(unsigned int j=0; j<m_Nhidden; j++){
         bPlusSumXw[j]/=m_sigma2;
-        bPlusSumXw[j]+=m_trainableParameters->b[j];
+        bPlusSumXw[j]+=m_trainableParameters->m_b[j];
         m_expBPlusSumXw[j] = exp( bPlusSumXw[j]);
         m_productTerm*=(1.0+m_expBPlusSumXw[j]);
     }
@@ -113,8 +81,6 @@ void RestrictedBoltzmannMachine::adjustPosition(std::vector<std::unique_ptr<clas
     //because there is here a loop over hidden nodes ....could also compute the product term in .evaluate()?
     //yes, but it would take another loop over hidden nodes. so we just exploit the loop which is here.
                         
-    double delta ;
-
     for(unsigned int j=0; j<m_Nhidden; j++){
     //change in the \sum_i X_i w_{ij}
         // delta = (   step[0]*m_trainableParameters->W[2*index][j]+
@@ -140,17 +106,16 @@ double RestrictedBoltzmannMachine::computeDoubleDerivative(std::vector<std::uniq
     double sum2=0.0;
     double sum1=0.0;
     double firstDerivative=0.0;
-    double secondDerivative=0.0;
     double W_ij;
     double x_i ;
     for(unsigned int i =0 ; i<m_Nvisible; i++){
         for (unsigned int j=0; j<m_Nhidden; j++){
-            W_ij=m_trainableParameters->W[i][j];
+            W_ij=m_trainableParameters->m_W[i][j];
             sum2+=W_ij*W_ij*(m_expBPlusSumXw[j])/((1.0+m_expBPlusSumXw[j])*(1.0+m_expBPlusSumXw[j]));
             firstDerivative+= W_ij*m_expBPlusSumXw[j]/(m_expBPlusSumXw[j]+1);
         }
         x_i = particles[i/2]->getPosition()[i%2];
-        firstDerivative-=(x_i-m_trainableParameters->a[i]);
+        firstDerivative-=(x_i-m_trainableParameters->m_a[i]);
         sum1+=firstDerivative*firstDerivative;
     }
     // NEED ALSO THE FIRST DERIVATIVE OF THE LOG
@@ -171,11 +136,10 @@ std::vector<double> RestrictedBoltzmannMachine::getdPhi_dParams(std::vector<std:
     grad.reserve(m_Nhidden+m_Nvisible+m_Nhidden*m_Nvisible);
     std::vector<double> X ;
     double tm1;
-    double tm2;
     //d/da_i
     for (unsigned int i =0 ; i<m_Nvisible; i++){
         X = particles[i/2]->getPosition();
-        tm1=X[i%2]-m_trainableParameters->a[i];
+        tm1=X[i%2]-m_trainableParameters->m_a[i];
         tm1/=m_sigma2;
         grad.push_back(0.5*tm1);
     }
@@ -209,14 +173,14 @@ std::vector<double> RestrictedBoltzmannMachine::quantumForce(std::vector<std::un
     sum1=0.0;
     sum0=0.0;
     X= particles[index]->getPosition();
-    a_0=m_trainableParameters->a[0+2*index];
-    a_1=m_trainableParameters->a[1+2*index];
+    a_0=m_trainableParameters->m_a[0+2*index];
+    a_1=m_trainableParameters->m_a[1+2*index];
     delta0 =-(X[0]-a_0)/m_sigma2;
     delta1 = -(X[1]-a_1)/m_sigma2;
     for(unsigned int j =0 ; j<m_Nhidden; j++){
         double tmp = (1.0+1.0/m_expBPlusSumXw[j]);
-        W_0j=m_trainableParameters->W[2*index+0][j];
-        W_1j=m_trainableParameters->W[2*index+1][j];
+        W_0j=m_trainableParameters->m_W[2*index+0][j];
+        W_1j=m_trainableParameters->m_W[2*index+1][j];
         sum0+=(W_0j)/tmp;
         sum1+=(W_1j)/tmp;
     }
@@ -233,19 +197,18 @@ std::vector<double> RestrictedBoltzmannMachine::quantumForceMoved(std::vector<st
     double a_0, a_1;
     double W_0j, W_1j;
     double sum1, sum0;
-    double delta;
     double tmp_exp;
     sum0=0.0;
     sum1=0.0;
     X= particles[index]->getPosition();
-    a_0=m_trainableParameters->a[0+2*index];
-    a_1=m_trainableParameters->a[1+2*index];
+    a_0=m_trainableParameters->m_a[0+2*index];
+    a_1=m_trainableParameters->m_a[1+2*index];
     sum0-=(X[0]+step[0]-a_0) ;
     sum1-=(X[1]+step[1]-a_1) ;
 
     for(unsigned int j =0 ; j<m_Nhidden; j++){
-        W_0j=m_trainableParameters->W[2*index+0][j];
-        W_1j=m_trainableParameters->W[2*index+1][j];
+        W_0j=m_trainableParameters->m_W[2*index+0][j];
+        W_1j=m_trainableParameters->m_W[2*index+1][j];
         tmp_exp = m_expBPlusSumXw[j]*m_proposalProductExpDelta[j];
         sum0+=W_0j/(1.0+1.0/tmp_exp);
         sum1+=W_1j/(1.0+1.0/tmp_exp);
@@ -261,8 +224,8 @@ double RestrictedBoltzmannMachine::phiRatio(std::vector<std::unique_ptr<class Pa
     double A;
     double a_0, a_1;
     std::vector<double> X = particles[index]->getPosition();
-    a_0=m_trainableParameters->a[0+2*index];
-    a_1=m_trainableParameters->a[1+2*index];
+    a_0=m_trainableParameters->m_a[0+2*index];
+    a_1=m_trainableParameters->m_a[1+2*index];
     A=  -step[0]*(2*(X[0]-a_0)+step[0])
         -step[1]*(2*(X[1]-a_1)+step[1]);
     A=exp(A);
@@ -271,14 +234,16 @@ double RestrictedBoltzmannMachine::phiRatio(std::vector<std::unique_ptr<class Pa
     m_proposalProduct=1.0;//1+exp(bj+sum xiwij/sigma_2+step*wkj/sigma_2)
     double W_0j, W_1j;
     for (unsigned int j =0 ; j<m_Nhidden; j++){
-        W_0j=m_trainableParameters->W[2*index+0][j];
-        W_1j=m_trainableParameters->W[2*index+1][j];
+        W_0j=m_trainableParameters->m_W[2*index+0][j];
+        W_1j=m_trainableParameters->m_W[2*index+1][j];
         m_proposalProductExpDelta[j] = exp( (step[0]*W_0j+step[1]*W_1j)/m_sigma2);
         m_proposalProduct*=1.0+m_expBPlusSumXw[j]*m_proposalProductExpDelta[j];
     }
     A*=m_proposalProduct/m_productTerm;
     A*=A;//want the square of psi, not psi
     return A;
+}
 
-    
+const std::vector<double>& RestrictedBoltzmannMachine::getParameters() {
+    return m_trainableParameters->m_allParams;
 }
