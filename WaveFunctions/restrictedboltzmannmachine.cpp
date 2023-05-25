@@ -101,22 +101,29 @@ void RestrictedBoltzmannMachine::adjustPosition(std::vector<std::unique_ptr<clas
 //NOTE: THERE IS A CACHE i.e. some of the quantities needed for the computation are already stored in the class
 //(see functions above)
 double RestrictedBoltzmannMachine::computeDoubleDerivative(std::vector<std::unique_ptr<class Particle>>& particles){
-    //compute the laplacian of the wave function (see ipynb on boltzmann machines)
+    //compute the laplacian of Psi (divided by Psi)
     // we use the expression (108) from the lecture notes on boltzmann machines
-    double sum2=0.0;
-    double sum1=0.0;
-    double firstDerivative=0.0;
+    // the factor -1/2 is multiplied by the hamiltonian. 
+    double secondDerivative;
+    double firstDerivative;
+    double sum1=0.0; 
+    double sum2=0.0; //store sum of 1st and 2nd derivatives
     double W_ij;
     double x_i ;
     for(unsigned int i =0 ; i<m_Nvisible; i++){
+
+        //Compute derivatives of ln(Psi) wrt x_i
+        firstDerivative = 0.0;
+        secondDerivative = 0.0;
         for (unsigned int j=0; j<m_Nhidden; j++){
             W_ij=m_trainableParameters->m_W[i][j];
-            sum2+=W_ij*W_ij*(m_expBPlusSumXw[j])/((1.0+m_expBPlusSumXw[j])*(1.0+m_expBPlusSumXw[j]));
+            secondDerivative+=W_ij*W_ij*(m_expBPlusSumXw[j])/((1.0+m_expBPlusSumXw[j])*(1.0+m_expBPlusSumXw[j]));
             firstDerivative+= W_ij*m_expBPlusSumXw[j]/(m_expBPlusSumXw[j]+1);
         }
         x_i = particles[i/2]->getPosition()[i%2];
         firstDerivative-=(x_i-m_trainableParameters->m_a[i]);
         sum1+=firstDerivative*firstDerivative;
+        sum2+=secondDerivative;
     }
     // NEED ALSO THE FIRST DERIVATIVE OF THE LOG
     sum1/=m_sigma2*m_sigma2;

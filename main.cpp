@@ -146,7 +146,7 @@ int main(int argc, char *argv[]) {
         }
         else{
             // LBFGS ALGORITHM BY DEFAULT: 
-            nlopt::opt opt(nlopt::LD_LBFGS, 2);
+            nlopt::opt opt(nlopt::LD_LBFGS, simPar.rbmParamsPtr->m_allParams.size());
             opt.set_min_objective(wrapSimulation, (void *) & simPar );
             opt.set_maxeval(nMaxIter);
             opt.set_ftol_abs(energyTol);
