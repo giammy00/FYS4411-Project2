@@ -41,6 +41,10 @@ Sampler::Sampler(std::vector<std::unique_ptr< class Sampler>  >  & samplers){
     m_numberOfDimensions = samplers[0]->getNdim();
     m_waveFunctionParameters = samplers[0]->getWFparams();
     m_numberOfParticles = samplers[0]->getNparticles();
+    m_Nhidden = (numberOfWFParams-m_numberOfParticles*m_numberOfDimensions)/
+            (m_numberOfParticles*m_numberOfDimensions+1);
+                std::cout << "num. den." << std::endl;
+    m_numberOfParticles = samplers[0]->getNparticles();
     m_gradientTerms = std::vector<std::vector<double>>(numberOfWFParams, std::vector<double>(2, 0.0)) ;
     int Nparams = m_gradientTerms.size();
     int Nsamplers = samplers.size();
@@ -97,6 +101,8 @@ void Sampler::sample(bool acceptedStep, System* system) {
 
 void Sampler::transferWaveFunctionParameters(std::vector<double> parameters){
     m_waveFunctionParameters = parameters;
+
+
 }
 
 void Sampler::printOutputToTerminal(unsigned int nPrintedPar) {
@@ -171,7 +177,7 @@ void Sampler::computeAverages() {
 }
 
 
-void Sampler::initiateFile(std::string filename){
+void Sampler::initiateFile(std::string filename, unsigned int nPrintedParams){
     std::ofstream file (filename, std::ofstream::app);
     file << "n_particles" << '\t'
         << "n_dimensions" << '\t'
@@ -179,7 +185,14 @@ void Sampler::initiateFile(std::string filename){
         << "n_accepted_steps" << '\t'
         << "E" << '\t'
         << "var" << '\t'
-        << "sigma" << endl;
+        << "Nhidden" << '\t';
+        for(unsigned int j = 0; j<nPrintedParams; j++){
+        file << "param_" + std::to_string(j) << '\t';
+        }
+        for(unsigned int j = 0; j<nPrintedParams; j++){
+        file << "grad_" + std::to_string(j) << '\t';
+        }
+        file <<  endl;
     file.close();
 }
 
@@ -192,7 +205,8 @@ void Sampler::writeToFile(std::string filename, unsigned int nPrintedParams){
         << m_stepNumber << '\t'
         << m_numberOfAcceptedSteps << '\t'
         << m_energy << '\t'
-        << m_energy2 - m_energy * m_energy; // variance
+        << m_energy2 - m_energy * m_energy << '\t'
+        << m_Nhidden ; // variance
     for (unsigned int i = 0; i < nPrintedParams; i++)
         file << '\t' << m_waveFunctionParameters[i];
     for (unsigned int i = 0; i < nPrintedParams; i++)

@@ -10,6 +10,7 @@
 #include "WaveFunctions/interactinggaussian.h"
 #include "WaveFunctions/interactinggaussian3d.h"
 #include "WaveFunctions/restrictedboltzmannmachine.h"
+#include "Hamiltonians/interactingharmonicoscillator.hpp"
 #include "Hamiltonians/harmonicoscillator.h"
 #include "Hamiltonians/harmonicoscillator3d.h"
 #include "InitialStates/initialstate.h"
@@ -139,6 +140,7 @@ std::unique_ptr<class Sampler> runSimulation(
     auto system = std::make_unique<System>(
             // Construct unique_ptr to Hamiltonian
             std::make_unique<HarmonicOscillator>(P->omega),
+            //std::make_unique<InteractingHarmonicOscillator>(P->omega),
             // std::make_unique<HarmonicOscillator3D>(P->omega, P->gamma),
             // Construct unique_ptr to wave function
             // std::make_unique<SimpleGaussian>(params[0]),
@@ -147,8 +149,8 @@ std::unique_ptr<class Sampler> runSimulation(
             //std::make_unique<InteractingGaussian3D>(params[0], params[1]),
             std::make_unique<RestrictedBoltzmannMachine>(P->sigma, P->rbmParamsPtr ),
             // Construct unique_ptr to solver, and move rng
-            std::make_unique<MetropolisHastings>(std::move(rng)),
-            //std::make_unique<Metropolis>(std::move(rng)),
+            //std::make_unique<MetropolisHastings>(std::move(rng)),
+            std::make_unique<Metropolis>(std::move(rng)),
             // Move the vector of particles to system
             std::move(particles),
             P->calculateGradients);

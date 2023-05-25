@@ -34,7 +34,7 @@ public:
     int getNparticles(){return m_numberOfParticles;}
 
     std::vector<double> computeGradientEtrial();
-    void initiateFile(std::string filename);
+    void initiateFile(std::string filename, unsigned int nPrintedParams=2);
     void writeToFile(std::string filename , unsigned int nPrintedParams=2);
     virtual void writeHistogram();
 
@@ -55,5 +55,6 @@ protected:
     std::vector<std::vector<double>> m_gradientTerms;
     //compute the gradient of the trial energy wrt variational parameters
     std::vector<double> m_waveFunctionParameters;
+    unsigned int m_Nhidden;
 };
 #endif
