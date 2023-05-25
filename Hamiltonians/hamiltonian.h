@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __HAMILTONIAN__
+#define __HAMILTONIAN__
 #include <memory>
 #include <vector>
 
@@ -11,3 +12,4 @@ public:
     ) = 0;
 };
 
+#endif

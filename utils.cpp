@@ -1,4 +1,3 @@
-#pragma once
 #include<vector>
 #include <memory>
 #include<nlopt.hpp>
@@ -139,8 +138,8 @@ std::unique_ptr<class Sampler> runSimulation(
     
     auto system = std::make_unique<System>(
             // Construct unique_ptr to Hamiltonian
-            // std::make_unique<HarmonicOscillator>(omega),
-            std::make_unique<HarmonicOscillator3D>(P->omega, P->gamma),
+            std::make_unique<HarmonicOscillator>(P->omega),
+            // std::make_unique<HarmonicOscillator3D>(P->omega, P->gamma),
             // Construct unique_ptr to wave function
             // std::make_unique<SimpleGaussian>(params[0]),
             // std::make_unique<SimpleGaussian3D>(params[0], params[1]),
@@ -194,7 +193,7 @@ double momentumOptimizer::optimize(std::vector<double>& x, double& opt_f ) {
     {
         
 
-        opt_f = wrapSimulation(x, m_gradient, m_function_params);
+        opt_f = m_objective_function(x, m_gradient, m_function_params);
         
         energyChange = fabs(oldEnergy-opt_f);
         

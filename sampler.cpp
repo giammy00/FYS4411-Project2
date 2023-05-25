@@ -99,10 +99,10 @@ void Sampler::transferWaveFunctionParameters(std::vector<double> parameters){
     m_waveFunctionParameters = parameters;
 }
 
-void Sampler::printOutputToTerminal() {
+void Sampler::printOutputToTerminal(unsigned int nPrintedPar) {
     auto pa = m_waveFunctionParameters;
     //auto p = pa.size();
-    unsigned int p = 2;//print only two parameters , no endless printout !
+    unsigned int p = nPrintedPar;//print only two parameters , no endless printout !
     std::vector<double> grad = computeGradientEtrial();
 
     cout << endl;
@@ -130,10 +130,10 @@ void Sampler::printOutputToTerminal() {
     cout << endl << endl;
 }
 
-void Sampler::printOutputToTerminalShort() {
+void Sampler::printOutputToTerminalShort(unsigned int nPrintedPar) {
     auto pa = m_waveFunctionParameters;
     //auto p = pa.size();
-    unsigned int p = 2;//print only 2 params, avoid endless printout
+    unsigned int p = nPrintedPar;//print only 2 params, avoid endless printout
     std::vector<double> grad = computeGradientEtrial();
 
     cout << endl;
@@ -193,9 +193,9 @@ void Sampler::writeToFile(std::string filename, unsigned int nPrintedParams){
         << m_numberOfAcceptedSteps << '\t'
         << m_energy << '\t'
         << m_energy2 - m_energy * m_energy; // variance
-    for (unsigned int i = 0; i < m_waveFunctionParameters.size(); i++)
+    for (unsigned int i = 0; i < nPrintedParams; i++)
         file << '\t' << m_waveFunctionParameters[i];
-    for (unsigned int i = 0; i < grad.size(); i++)
+    for (unsigned int i = 0; i < nPrintedParams; i++)
         file << '\t' << grad[i];
     file << endl;
     file.close();

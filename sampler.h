@@ -18,8 +18,8 @@ public:
     virtual void sample(bool acceptedStep, class System* system);
     void equilibrationSample(bool acceptedStep);
     void transferWaveFunctionParameters(std::vector<double> parameters);
-    void printOutputToTerminal();
-    void printOutputToTerminalShort();
+    void printOutputToTerminal(unsigned int nPrintedPar=2);
+    void printOutputToTerminalShort(unsigned int nPrintedPar=2);
     void computeAverages();
     //implement getters to combine results and print them to terminal/file
     double getEnergy() { return m_energy; }

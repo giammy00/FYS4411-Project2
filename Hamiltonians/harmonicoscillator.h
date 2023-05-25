@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __HARMONIC_OSCILLATOR__
+#define __HARMONIC_OSCILLATOR__
 #include <memory>
 #include <vector>
 
@@ -15,3 +16,4 @@ public:
 private:
     double m_omega;
 };
+#endif

@@ -138,7 +138,7 @@ int main(int argc, char *argv[]) {
                                         &rngP);
         simPar.rbmParamsPtr=&parameters;
         if (OPTIMIZATION_ALGORITHM=="GD"){
-            momentumOptimizer opt(2, &gd_parameters);
+            momentumOptimizer opt(simPar.rbmParamsPtr->m_allParams.size(), &gd_parameters);
             opt.set_min_objective(wrapSimulation, (void *) & simPar );
             opt.set_maxeval(nMaxIter);
             opt.set_ftol_abs(energyTol);

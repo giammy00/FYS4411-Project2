@@ -1,5 +1,5 @@
-#pragma once
-
+#ifndef __INITIAL_STATE__
+#define __INITIAL_STATE__
 #include <memory>
 #include <vector>
 
@@ -28,3 +28,4 @@ std::vector<std::unique_ptr<Particle>> setupNonOverlappingGaussianInitialState(
             double lengthScale,
             double dist = 0.0043
             );
+#endif

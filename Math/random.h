@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __RANDOM_MY__
+#define __RANDOM_MY__
 
 #include <random>
 
@@ -71,3 +72,4 @@ public:
     }
 };
 
+#endif

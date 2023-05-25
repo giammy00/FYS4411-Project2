@@ -121,8 +121,7 @@ double RestrictedBoltzmannMachine::computeDoubleDerivative(std::vector<std::uniq
     // NEED ALSO THE FIRST DERIVATIVE OF THE LOG
     sum1/=m_sigma2*m_sigma2;
     sum2/=m_sigma2*m_sigma2;
-    sum2+= -m_Nvisible/m_sigma2;
-
+    sum2+= -static_cast<double>(m_Nvisible)/m_sigma2;
     return sum1+sum2;
 }
  
