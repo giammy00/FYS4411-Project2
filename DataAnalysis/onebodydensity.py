@@ -20,7 +20,7 @@ def plot_hists():
     ticks = np.linspace(0, 100, 6)
     labels = np.linspace(-1.5, 1.5, 6)
 
-    histogram = get_histogram(N=100)
+    histogram = get_histogram(N=2)
     fig, ax = plt.subplots(1,2,figsize=(9,4))
     hist_xy = np.sum(histogram, axis=2)
     hist_xz = np.sum(histogram, axis=1)
@@ -95,6 +95,6 @@ if __name__ == "__main__":
     alphaopt = np.array([0.4941,
     0.4742,
     0.4673])
-    for i, n in enumerate([10,50,100]):
-        gaussian_fit(n, alphaopt[i], betaopt[i])
-    #plot_hists()
+    # for i, n in enumerate([2,]):
+    #     gaussian_fit(n, alphaopt[i], betaopt[i])
+    plot_hists()
