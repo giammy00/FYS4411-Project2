@@ -33,7 +33,7 @@ double wrapSimulation(const std::vector<double> &params, std::vector<double> &gr
     //need a new seed every time a simulation is run. 
     std::vector<int> current_seed(1);
     seq.generate(current_seed.begin(), current_seed.end());
-    P->base_seed = current_seed[0];
+    P->base_seed = current_seed[0];//generate a new base seed every time this function is called!
     bool file_initiated;
     if( FILE * fptr  = fopen(P->filename.c_str(),"r") ){
         fclose(fptr);
@@ -128,9 +128,8 @@ std::unique_ptr<class Sampler> runSimulation(
     SimulationParams *P,
     std::vector<double> params
 ){
-    
+    //init seed based on thread number
     int seed = (P->base_seed)+77*omp_get_thread_num();
-    // The random engine can also be built without a seed
     auto rng = std::make_unique<Random>(seed);
     // Initialize particles
     // auto particles = setupNonOverlappingGaussianInitialState(numberOfDimensions, numberOfParticles, *rng, a_ho);
@@ -139,8 +138,8 @@ std::unique_ptr<class Sampler> runSimulation(
     
     auto system = std::make_unique<System>(
             // Construct unique_ptr to Hamiltonian
-            std::make_unique<HarmonicOscillator>(P->omega),
-            //std::make_unique<InteractingHarmonicOscillator>(P->omega),
+            //std::make_unique<HarmonicOscillator>(P->omega),
+            std::make_unique<InteractingHarmonicOscillator>(P->omega),
             // std::make_unique<HarmonicOscillator3D>(P->omega, P->gamma),
             // Construct unique_ptr to wave function
             // std::make_unique<SimpleGaussian>(params[0]),

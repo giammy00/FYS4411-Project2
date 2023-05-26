@@ -159,6 +159,7 @@ int main(int argc, char *argv[]) {
         cout << "Running simulation without computing gradients.\n " <<
         "If you wish to enable gradient method, set calculateGradients=0 in simulation_input.txt. " << endl; 
         RBMParams parameters(2*simPar.numberOfParticles, simPar.N_hidden, "./Outputs/optimizedRBMParams.bin");
+        simPar.rbmParamsPtr=&parameters;
         wrapSimulationLargeScale( parameters.m_allParams, (void*) & simPar);
     }
     #ifdef TIMEING

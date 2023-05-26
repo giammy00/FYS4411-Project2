@@ -1,11 +1,11 @@
-learning_rate=0.1
+learning_rate=0.05
 momentum=0.4
 sigma=1.0
 gamma=2.82843
 nMaxIter=100
 energyTol=0.000001
 omega=1.0
-calculateGradients=1
+calculateGradients=0
 numberOfParticles=2
 numberOfMetropolisSteps=500000
 numberOfEquilibrationSteps=100000

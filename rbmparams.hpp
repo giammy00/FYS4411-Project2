@@ -10,7 +10,7 @@ m_a, m_b, m_W are pointers to the proper parts of m_allParams
 In this way
 (1) The code can interact with nlopt library, which requires gradient and parameters
 to be stored in a std::vector 
-(2) We can access the parameters easily using indexing, like m_a[i], and so on
+(2) We can access the parameters easily using indexing, like m_a[i], and so on.
 */
 class RBMParams {
     public:
