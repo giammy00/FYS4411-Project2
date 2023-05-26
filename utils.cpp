@@ -87,6 +87,7 @@ double wrapSimulation(const std::vector<double> &params, std::vector<double> &gr
     return energy;
 }
 
+
 //to keep main clean, define the large scale simulation here.
 void wrapSimulationLargeScale(const std::vector<double> &params,  void * xPtr) {
     //xPtr points to a struct SimulationParams.
