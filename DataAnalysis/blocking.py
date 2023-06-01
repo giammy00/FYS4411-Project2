@@ -53,7 +53,7 @@ def block(x):
 
 if __name__ =="__main__":
     print(f"$N$ & \t\t $E$ & \t\t $\\sigma$ & $\\eta$ &  var$(E/N)$ \\\\")
-    N_part_list = [10, 50, 100]
+    N_part_list = [2]
     threadnums = np.arange(8)
     #import sampled energies
     energies=np.empty(0)
@@ -61,7 +61,7 @@ if __name__ =="__main__":
     for N_particles in N_part_list:
         all_energies = np.empty(0)
         for thread in threadnums:
-            filename="sampledEnergies_" + str(N_particles) + "_" + str(thread) + ".bin"
+            filename="sampledEnergies_" + '2' + "_" + str(thread) + ".bin"
             x = np.fromfile( os.path.join(OUTPUT_DIR, filename), dtype=float)
             all_energies= np.append(all_energies, x)
 

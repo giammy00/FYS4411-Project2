@@ -11,6 +11,7 @@ def get_histogram(N, NX=100, NY=100, NZ=100):
         fname = os.path.join(OUTPUT_DIR, "histogram"+str(N)+"_"+str(thread)+".bin")
         hist = np.fromfile(fname, dtype=np.uint32).reshape((NX, NY, NZ))
         HIST_TOT+=hist
+        
     
     #HIST_TOT=HIST_TOT/np.max(HIST_TOT)
     return HIST_TOT
@@ -25,7 +26,12 @@ def plot_hists():
     hist_xy = np.sum(histogram, axis=2)
     hist_xz = np.sum(histogram, axis=1)
     img =[]
-    img.append( ax[0].imshow(np.transpose(hist_xy)) ) 
+    img.append( ax[0].imshow(np.transpose(hist_xy)) )
+    # outfile = open("DataAnalysis/datalatex/output_density_interr.dat",'w')
+    # h=3.0/len(np.transpose(hist_xy)[0])
+    # for g in range(len(np.transpose(hist_xy))//3):
+    #     for v in range(len(np.transpose(hist_xy)[g])//3):
+    #         outfile.write('%f %f %f\n' %(-1.5+3*h*v,-1.5+3*g*h,np.transpose(hist_xy)[3*g][3*v]))
     ax[0].set_ylabel("y")
     img.append(ax[1].imshow(np.transpose(hist_xz)) ) 
     ax[1].set_ylabel("z")
