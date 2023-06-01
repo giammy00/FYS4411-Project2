@@ -47,12 +47,6 @@ SamplerFineTune::SamplerFineTune(std::vector<std::unique_ptr< class SamplerFineT
     m_numberOfDimensions = samplers[0]->getNdim();
     m_waveFunctionParameters = samplers[0]->getWFparams();
     m_numberOfParticles = samplers[0]->getNparticles();
-
-    std::string fname_histogram = "./Outputs/PositionHistogram1_" + std::to_string(m_numberOfParticles) + ".bin";
-    std::string fname_histogram2 = "./Outputs/PositionHistogram2_" + std::to_string(m_numberOfParticles) + ".bin";
-
-    m_outBinaryFile.open(fname_histogram, std::ios::binary);
-
     m_gradientTerms = std::vector<std::vector<double>>(numberOfWFParams, std::vector<double>(2, 0.0)) ;
     int Nparams = m_gradientTerms.size();
     int Nsamplers = samplers.size();
@@ -76,8 +70,8 @@ SamplerFineTune::SamplerFineTune(std::vector<std::unique_ptr< class SamplerFineT
         for(int i=0; i<m_nx; i++){
             for(int j=0; j<m_ny; j++){
                 for(int k=0; k<m_nz; k++){
-                    for(int jj=0; j<2; j++)
-                    m_histograms[jj][i][j][k]+=sampler->m_histograms[jj][i][j][k];
+                    m_histograms[0][i][j][k]+=sampler->m_histograms[0][i][j][k];
+                    m_histograms[1][i][j][k]+=sampler->m_histograms[1][i][j][k];
                 }
             }
         }
@@ -127,10 +121,10 @@ void SamplerFineTune::writeHistogram(){
         m_outBinaryFile.close();
     }
     for(int jj=0; jj<2; jj++){
-    m_outBinaryFile.open(fname_thread[jj] , std::ios::binary );
-    unsigned int hist_size = m_nx*m_ny*m_nz*sizeof(unsigned int);
-    m_outBinaryFile.write((char*) m_histograms[jj][0][0], hist_size);
-    m_outBinaryFile.close();
+        m_outBinaryFile.open(fname_thread[jj] , std::ios::binary );
+        unsigned int hist_size = m_nx*m_ny*m_nz*sizeof(unsigned int);
+        m_outBinaryFile.write((char*) m_histograms[jj][0][0], hist_size);
+        m_outBinaryFile.close();
     }
     return ; 
 }
