@@ -49,7 +49,7 @@ SamplerFineTune::SamplerFineTune(std::vector<std::unique_ptr< class SamplerFineT
     m_numberOfParticles = samplers[0]->getNparticles();
 
     std::string fname_histogram = "./Outputs/PositionHistogram1_" + std::to_string(m_numberOfParticles) + ".bin";
-    std::string fname_histogram = "./Outputs/PositionHistogram2_" + std::to_string(m_numberOfParticles) + ".bin";
+    std::string fname_histogram2 = "./Outputs/PositionHistogram2_" + std::to_string(m_numberOfParticles) + ".bin";
 
     m_outBinaryFile.open(fname_histogram, std::ios::binary);
 
@@ -119,13 +119,18 @@ void SamplerFineTune::sample(bool acceptedStep, System* system) {
 
 void SamplerFineTune::writeHistogram(){
     int thread_number = omp_get_thread_num();
-    std::string fname_thread = "./Outputs/histogram" + std::to_string(m_numberOfParticles) + "_" + std::to_string(thread_number) + ".bin";
+    std::string fname_thread[2] = { "./Outputs/histogram1_" + std::to_string(m_numberOfParticles) + "_" + std::to_string(thread_number) + ".bin",
+    "./Outputs/histogram2_" + std::to_string(m_numberOfParticles) + "_" + std::to_string(thread_number) + ".bin"};
+
     //file may be already open to write the energies.
     if (m_outBinaryFile.is_open()) {
         m_outBinaryFile.close();
     }
-    m_outBinaryFile.open(fname_thread , std::ios::binary );
+    for(int jj=0; jj<2; jj++){
+    m_outBinaryFile.open(fname_thread[jj] , std::ios::binary );
     unsigned int hist_size = m_nx*m_ny*m_nz*sizeof(unsigned int);
-    m_outBinaryFile.write((char*) m_position_histogram[0][0], hist_size);
+    m_outBinaryFile.write((char*) m_histograms[jj][0][0], hist_size);
+    m_outBinaryFile.close();
+    }
     return ; 
 }
