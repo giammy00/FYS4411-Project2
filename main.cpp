@@ -14,8 +14,6 @@ h-bar = 1
 m = 1
 omega = 1
 */
-
-
 int main(int argc, char *argv[]) {
 
     ///////// Variable declarations and default values //////////////////

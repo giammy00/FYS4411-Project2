@@ -1,6 +1,7 @@
 #include<vector>
 #include <memory>
 #include<nlopt.hpp>
+#include<string>
 #include "utils.h"
 #include "omp.h"
 #include"sampler.h"
@@ -20,8 +21,7 @@
 #include "particle.h"
 #include "sampler.h"
 
-std::seed_seq seq{std::random_device{}()};
-
+Random seedgenerator(31415);
 double wrapSimulation(const std::vector<double> &params, std::vector<double> &grad, void * xPtr) {
     //wraps the runSimulation function so that it can be used with nlopt library  
     //check if output file already exists, if so, 
@@ -31,9 +31,9 @@ double wrapSimulation(const std::vector<double> &params, std::vector<double> &gr
     //convert P to struct pointer:
     SimulationParams* P = (SimulationParams *) xPtr;
     //need a new seed every time a simulation is run. 
-    std::vector<int> current_seed(1);
-    seq.generate(current_seed.begin(), current_seed.end());
-    P->base_seed = current_seed[0];//generate a new base seed every time this function is called!
+    int current_seed = seedgenerator.nextInt(__INT_MAX__) ;
+    std::cout << "current base seed for wrapper " << current_seed <<  std::endl;
+    P->base_seed = current_seed;//generate a new base seed every time this function is called!
     bool file_initiated;
     if( FILE * fptr  = fopen(P->filename.c_str(),"r") ){
         fclose(fptr);
@@ -131,6 +131,10 @@ std::unique_ptr<class Sampler> runSimulation(
 ){
     //init seed based on thread number
     int seed = (P->base_seed)+77*omp_get_thread_num();
+    #pragma omp critical
+    {
+    std::cout << "Thread number " << omp_get_thread_num() << " seed : " << seed << std::endl;
+    }
     auto rng = std::make_unique<Random>(seed);
     // Initialize particles
     // auto particles = setupNonOverlappingGaussianInitialState(numberOfDimensions, numberOfParticles, *rng, a_ho);
