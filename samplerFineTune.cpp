@@ -24,6 +24,9 @@ SamplerFineTune::SamplerFineTune( unsigned int numberOfParticles,
     std::string fname_thread = "./Outputs/sampledEnergies_" + std::to_string(numberOfParticles) + "_" + std::to_string(thread_number) + ".bin";
     m_outBinaryFile.open(fname_thread, std::ios::binary);
     m_position_histogram = init_3d_array(m_nx, m_ny, m_nz);
+    m_position_histogram2 = init_3d_array(m_nx, m_ny, m_nz);
+    m_histograms = (unsigned int ****) malloc(2*sizeof(unsigned int ***));
+    m_histograms[0] = m_position_histogram; m_histograms[1] = m_position_histogram2;
     m_xMin = -1.5;
     m_xMax = 1.5;
     m_yMin = -1.5;
@@ -37,12 +40,17 @@ SamplerFineTune::SamplerFineTune(std::vector<std::unique_ptr< class SamplerFineT
 {
 
     m_position_histogram = init_3d_array(m_nx, m_ny, m_nz);
+    m_position_histogram2 = init_3d_array(m_nx, m_ny, m_nz);
+    m_histograms = (unsigned int ****) malloc(2*sizeof(unsigned int ***));
+    m_histograms[0] = m_position_histogram; m_histograms[1] = m_position_histogram2;
     int numberOfWFParams = samplers[0]->getGradientTerms().size();
     m_numberOfDimensions = samplers[0]->getNdim();
     m_waveFunctionParameters = samplers[0]->getWFparams();
     m_numberOfParticles = samplers[0]->getNparticles();
 
-    std::string fname_histogram = "./Outputs/PositionHistogram_" + std::to_string(m_numberOfParticles) + ".bin";
+    std::string fname_histogram = "./Outputs/PositionHistogram1_" + std::to_string(m_numberOfParticles) + ".bin";
+    std::string fname_histogram = "./Outputs/PositionHistogram2_" + std::to_string(m_numberOfParticles) + ".bin";
+
     m_outBinaryFile.open(fname_histogram, std::ios::binary);
 
     m_gradientTerms = std::vector<std::vector<double>>(numberOfWFParams, std::vector<double>(2, 0.0)) ;
@@ -68,7 +76,8 @@ SamplerFineTune::SamplerFineTune(std::vector<std::unique_ptr< class SamplerFineT
         for(int i=0; i<m_nx; i++){
             for(int j=0; j<m_ny; j++){
                 for(int k=0; k<m_nz; k++){
-                    m_position_histogram[i][j][k]+=sampler->m_position_histogram[i][j][k];
+                    for(int jj=0; j<2; j++)
+                    m_histograms[jj][i][j][k]+=sampler->m_histograms[jj][i][j][k];
                 }
             }
         }
@@ -91,15 +100,18 @@ void SamplerFineTune::sample(bool acceptedStep, System* system) {
 
     m_stepNumber++;
     m_numberOfAcceptedSteps += acceptedStep;
-    std::vector<double> pos = system->getParticlePosition(0);
+    std::vector<double> pos; 
     int i,j,k;
-
-    i = (int) ((pos[0]-m_xMin)/(m_xMax-m_xMin)*m_nx);
-    j = (int) ((pos[1]-m_yMin)/(m_yMax-m_yMin)*m_ny);
-    k = (int) ((pos[2]-m_zMin)/(m_zMax-m_zMin)*m_nz);
-    bool within_limits = (i<m_nx) & (j<m_ny) & (k<m_nz) & (i>0) & (j>0) & (k>0);
-    if (within_limits)
-        m_position_histogram[i][j][k]+=1;
+    bool within_limits;
+    for(int jj=0; jj<2; jj++){
+        pos =  system->getParticlePosition(jj);
+        i = (int) ((pos[0]-m_xMin)/(m_xMax-m_xMin)*m_nx);
+        j = (int) ((pos[1]-m_yMin)/(m_yMax-m_yMin)*m_ny);
+        k = (int) ((pos[2]-m_zMin)/(m_zMax-m_zMin)*m_nz);
+        within_limits = (i<m_nx) & (j<m_ny) & (k<m_nz) & (i>0) & (j>0) & (k>0);
+        if (within_limits)
+            m_histograms[jj][i][j][k]+=1;
+    }
     //write sampled energy to a file
     m_outBinaryFile.write(reinterpret_cast<const char*>(&localEnergy), sizeof(double));
 

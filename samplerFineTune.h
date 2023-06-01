@@ -15,6 +15,8 @@ public:
     std::ofstream m_outBinaryFile;
     void sample(bool acceptedStep, System* system) override ;
     unsigned int *** m_position_histogram;
+    unsigned int *** m_position_histogram2;
+    unsigned int **** m_histograms;
     int m_nx=100;
     int m_ny=100;
     int m_nz=100;
