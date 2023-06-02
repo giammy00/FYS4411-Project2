@@ -72,7 +72,9 @@ double wrapSimulation(const std::vector<double> &params, std::vector<double> &gr
         collective_sampler->initiateFile(P->filename);
         file_initiated = true;
     }
-    collective_sampler->writeToFile(P->filename);            
+    collective_sampler->writeToFile(P->filename,
+                                    //print all parameters
+                                    collective_sampler->getWFparams().size());            
     //write to terminal:
     collective_sampler->printOutputToTerminalShort();
 
