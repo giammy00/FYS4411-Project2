@@ -32,7 +32,6 @@ double wrapSimulation(const std::vector<double> &params, std::vector<double> &gr
     SimulationParams* P = (SimulationParams *) xPtr;
     //need a new seed every time a simulation is run. 
     int current_seed = seedgenerator.nextInt(__INT_MAX__) ;
-    std::cout << "current base seed for wrapper " << current_seed <<  std::endl;
     P->base_seed = current_seed;//generate a new base seed every time this function is called!
     bool file_initiated;
     if( FILE * fptr  = fopen(P->filename.c_str(),"r") ){
@@ -135,10 +134,6 @@ std::unique_ptr<class Sampler> runSimulation(
 ){
     //init seed based on thread number
     int seed = (P->base_seed)+77*omp_get_thread_num();
-    #pragma omp critical
-    {
-    std::cout << "Thread number " << omp_get_thread_num() << " seed : " << seed << std::endl;
-    }
     auto rng = std::make_unique<Random>(seed);
     // Initialize particles
     // auto particles = setupNonOverlappingGaussianInitialState(numberOfDimensions, numberOfParticles, *rng, a_ho);
