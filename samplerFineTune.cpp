@@ -22,7 +22,10 @@ SamplerFineTune::SamplerFineTune( unsigned int numberOfParticles,
 {
     int thread_number = omp_get_thread_num();
     std::string fname_thread = "./Outputs/sampledEnergies_" + std::to_string(numberOfParticles) + "_" + std::to_string(thread_number) + ".bin";
+    std::string fname_thread_pos = "./Outputs/sampledDistances_" + std::to_string(numberOfParticles) + "_" + std::to_string(thread_number) + ".bin";
+
     m_outBinaryFile.open(fname_thread, std::ios::binary);
+    m_outFileDistance.open(fname_thread_pos, std::ios::binary);
     m_position_histogram = init_3d_array(m_nx, m_ny, m_nz);
     m_position_histogram2 = init_3d_array(m_nx, m_ny, m_nz);
     m_histograms = (unsigned int ****) malloc(2*sizeof(unsigned int ***));
@@ -97,8 +100,11 @@ void SamplerFineTune::sample(bool acceptedStep, System* system) {
     std::vector<double> pos; 
     int i,j,k;
     bool within_limits;
+    double dx=0.0, dy=0.0;
     for(int jj=0; jj<2; jj++){
         pos =  system->getParticlePosition(jj);
+        dx += pos[0]*(2*jj-1);//subtract when jj==0, add when jj==1
+        dy += pos[1]*(2*jj-1);//in this way I get dx = x1-x0 and dy = y1-y0 
         i = (int) ((pos[0]-m_xMin)/(m_xMax-m_xMin)*m_nx);
         j = (int) ((pos[1]-m_yMin)/(m_yMax-m_yMin)*m_ny);
         k = (int) ((pos[2]-m_zMin)/(m_zMax-m_zMin)*m_nz);
@@ -106,7 +112,9 @@ void SamplerFineTune::sample(bool acceptedStep, System* system) {
         if (within_limits)
             m_histograms[jj][i][j][k]+=1;
     }
+    double distance = sqrt(dx*dx + dy*dy);
     //write sampled energy to a file
+    m_outFileDistance.write(reinterpret_cast<const char*>(&distance), sizeof(double));
     m_outBinaryFile.write(reinterpret_cast<const char*>(&localEnergy), sizeof(double));
 
 }
