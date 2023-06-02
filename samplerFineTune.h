@@ -13,6 +13,7 @@ public:
     SamplerFineTune(std::vector<std::unique_ptr< class SamplerFineTune  >  >  & samplers );
     void writeHistogram();
     std::ofstream m_outBinaryFile;
+    std::ofstream m_outFileDistance;
     void sample(bool acceptedStep, System* system) override ;
     unsigned int *** m_position_histogram;
     unsigned int *** m_position_histogram2;

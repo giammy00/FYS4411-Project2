@@ -43,7 +43,6 @@ double InteractingHarmonicOscillator::computeLocalEnergy(
                 r2 += (pos2[k] - pos[k])*(pos2[k] - pos[k]);
             }
             rInverse = 1.0/sqrt(r2);
-            //compute inverse distance on the lower triangular part of the matrix.
             coulombEnergy+=rInverse;
         }
         potentialEnergy += pos[0] * pos[0];

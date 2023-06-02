@@ -69,7 +69,9 @@ double wrapSimulation(const std::vector<double> &params, std::vector<double> &gr
     std::unique_ptr< class Sampler > collective_sampler = std::make_unique< class Sampler >( samplers );
     //write to file
     if(!file_initiated){
-        collective_sampler->initiateFile(P->filename);
+        collective_sampler->initiateFile(P->filename,                                    
+                                    //print all parameters
+                                    collective_sampler->getWFparams().size());
         file_initiated = true;
     }
     collective_sampler->writeToFile(P->filename,
