@@ -43,7 +43,6 @@ Sampler::Sampler(std::vector<std::unique_ptr< class Sampler>  >  & samplers){
     m_numberOfParticles = samplers[0]->getNparticles();
     m_Nhidden = (numberOfWFParams-m_numberOfParticles*m_numberOfDimensions)/
             (m_numberOfParticles*m_numberOfDimensions+1);
-                std::cout << "num. den." << std::endl;
     m_numberOfParticles = samplers[0]->getNparticles();
     m_gradientTerms = std::vector<std::vector<double>>(numberOfWFParams, std::vector<double>(2, 0.0)) ;
     int Nparams = m_gradientTerms.size();
