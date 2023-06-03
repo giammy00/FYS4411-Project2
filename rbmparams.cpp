@@ -13,10 +13,16 @@ RBMParams::RBMParams(unsigned int Nvisible,unsigned int Nhidden,  Random * rng){
     double norm_b = 1.0/Nhidden;
     double norm_w = norm_a*norm_b;
     //init weights a
+    /*
     for(size_t i = 0; i<Nvisible; i++){
         tmp = rng->nextGaussian(0, norm_a);
         m_allParams.push_back(tmp);
     }
+    */
+   m_allParams.push_back(0.05);
+   m_allParams.push_back(0.05);
+   m_allParams.push_back(-0.05);
+   m_allParams.push_back(-0.05);
     m_a = m_allParams.data();
 
     //init weights b
