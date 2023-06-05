@@ -40,3 +40,7 @@ vmc
 
 # Ignore output data
 *.bin
+Outputs/*.txt
+
+#python
+*.pyc

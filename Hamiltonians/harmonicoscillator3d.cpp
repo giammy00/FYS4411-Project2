@@ -1,7 +1,6 @@
 #include<memory>
 #include <cassert>
 #include <iostream>
-
 #include "harmonicoscillator3d.h"
 #include "../particle.h"
 #include "../WaveFunctions/wavefunction.h"
