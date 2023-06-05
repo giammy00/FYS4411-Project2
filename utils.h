@@ -20,6 +20,7 @@ struct simulationParams{
     RBMParams * rbmParamsPtr;//a pointer to a class instance RBMParams
     double sigma;
     int base_seed;//store base seed , will be manipulated in different ways in every simulation
+    double min_energy= __DBL_MAX__; //store the minimum energy
 };
 struct gdParams{
     double learning_rate;

@@ -85,7 +85,7 @@ double wrapSimulation(const std::vector<double> &params, std::vector<double> &gr
     //save the params when energy is smaller than the smallest found up to now.
     if(energy<P->min_energy){
         P->min_energy = energy;
-        P->rbmParamsPtr->saveParams("./Outputs/optimizedRBMParams.bin")
+        P->rbmParamsPtr->saveParams("./Outputs/optimizedRBMParams.bin");
     }
     
     //sampler computes gradient 
