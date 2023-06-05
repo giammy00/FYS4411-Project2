@@ -19,10 +19,10 @@ RBMParams::RBMParams(unsigned int Nvisible,unsigned int Nhidden,  Random * rng){
         m_allParams.push_back(tmp);
     }
     
-//    m_allParams.push_back(0.15);
-//    m_allParams.push_back(-0.15);
-//    m_allParams.push_back(+0.15);
-//    m_allParams.push_back(-0.15);
+    // m_allParams.push_back(0.15);
+    // m_allParams.push_back(-0.15);
+    // m_allParams.push_back(+0.15);
+    // m_allParams.push_back(-0.15);
     m_a = m_allParams.data();
 
     //init weights b

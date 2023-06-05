@@ -2,48 +2,82 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 from path import OUTPUT_DIR
-def get_histogram(N, NX=100, NY=100, NZ=100):
-    '''get normalized histogram for experiment with N particles.
-    maximum element of output is 1'''
-    HIST_TOT = np.zeros((NX,NY,NZ), dtype=np.uint32)
+def get_histogram(N, folder="./Outputs", NX=100, NY=100, NZ=100):
+    '''get unnormalized histogram for experiment with N particles.
+    args:
+        folder: must be the folder containing the histogram data
+        NX, NY, NZ define the shape of the histogram.
+    '''
+    hist_tot_a = np.zeros((NX,NY,NZ), dtype=np.uint32)
+    hist_tot_b = np.zeros((NX,NY,NZ), dtype=np.uint32)
+
     threadnums= np.arange(8)
     for thread in threadnums:
-        fname = os.path.join(OUTPUT_DIR, "histogram"+str(N)+"_"+str(thread)+".bin")
-        hist = np.fromfile(fname, dtype=np.uint32).reshape((NX, NY, NZ))
-        HIST_TOT+=hist
+        fname_a = os.path.join(folder, "histogram1_"+str(N)+"_"+str(thread)+".bin")
+        hist = np.fromfile(fname_a, dtype=np.uint32).reshape((NX, NY, NZ))
+        hist_tot_a+=hist
         
+        fname_b = os.path.join(folder, "histogram2_"+str(N)+"_"+str(thread)+".bin")
+        hist = np.fromfile(fname_b, dtype=np.uint32).reshape((NX, NY, NZ))
+        hist_tot_b+=hist
     
     #HIST_TOT=HIST_TOT/np.max(HIST_TOT)
-    return HIST_TOT
+    return [hist_tot_a, hist_tot_b]
 
 ####PLOT TWO HISTOGRAMS 
-def plot_hists():
-    ticks = np.linspace(0, 100, 6)
-    labels = np.linspace(-1.5, 1.5, 6)
+def plot_hists_all():
+    ticks = np.linspace(0, 100, 4)
+    labels = np.linspace(-1.5, 1.5, 4)
+    fig, ax = plt.subplots(2,5,figsize=(9,4))
+    for mode_idx, mode in enumerate(['lbfgs', 'gd']):
 
-    histogram = get_histogram(N=2)
-    fig, ax = plt.subplots(1,2,figsize=(9,4))
-    hist_xy = np.sum(histogram, axis=2)
-    hist_xz = np.sum(histogram, axis=1)
-    img =[]
-    img.append( ax[0].imshow(np.transpose(hist_xy)) )
-    # outfile = open("DataAnalysis/datalatex/output_density_interr.dat",'w')
-    # h=3.0/len(np.transpose(hist_xy)[0])
-    # for g in range(len(np.transpose(hist_xy))//3):
-    #     for v in range(len(np.transpose(hist_xy)[g])//3):
-    #         outfile.write('%f %f %f\n' %(-1.5+3*h*v,-1.5+3*g*h,np.transpose(hist_xy)[3*g][3*v]))
-    ax[0].set_ylabel("y")
-    img.append(ax[1].imshow(np.transpose(hist_xz)) ) 
-    ax[1].set_ylabel("z")
+        for idx, NH in enumerate([2,4,6,8,10]):
+            foldername = os.path.join(OUTPUT_DIR,"OPTIMIZE_RUNS" , mode+"_2p_"+str(NH)+"nodes")
+            histograms = get_histogram(N=2, folder=foldername)
+            overlapped_hist = histograms[0]+histograms[1]
+            hist_xy = np.sum(overlapped_hist, axis=2)
+            hist_xy = np.flip(hist_xy, axis=0)
+            hist_xy = np.transpose(hist_xy)
+            ax[mode_idx][idx].imshow(hist_xy)
+            ax[mode_idx][idx].set_xticks(ticks)
+            ax[mode_idx][idx].set_yticks(ticks)
+            if idx==0:
+                ax[mode_idx][idx].set_yticklabels(['{:.1f}'.format(label) for label in labels[::-1]])
+            else:
+                ax[mode_idx][idx].set_yticklabels([])
 
-    for ax_cur, imgcur  in zip(ax, img):
-        ax_cur.set_xticks(ticks)
-        ax_cur.set_yticks(ticks)
-        ax_cur.set_xticklabels(['{:.1f}'.format(label) for label in labels])
-        ax_cur.set_yticklabels(['{:.1f}'.format(label) for label in labels[::-1]])
-        ax_cur.set_xlabel('x')
-        #fig.colorbar(imgcur, ax=ax_cur, format='%.0e')
-    plt.savefig("onebody_xy_xz_100.pdf", bbox_inches='tight')
+            if mode_idx==0:
+                ax[mode_idx][idx].set_title(f"$N_H={NH}$", fontsize=14)
+                ax[mode_idx][idx].set_xticklabels([])
+            else:
+                ax[mode_idx][idx].set_xticklabels(['{:.1f}'.format(label) for label in labels])
+
+            #fig.colorbar(imgcur, ax=ax[idx], format='%.0e')
+    ax[0][0].set_ylabel("L-BFGS", fontsize=14)
+    ax[1][0].set_ylabel("MOMENTUM GD", fontsize=14)
+    plt.savefig("onebody_all.pdf", bbox_inches='tight')
+    plt.show()
+
+def plot_hist():
+    ticks = np.linspace(0, 100, 4)
+    labels = np.linspace(-1.5, 1.5, 4)
+    fig, ax = plt.subplots(1,1,figsize=(9,4))
+    histograms = get_histogram(N=2)
+    overlapped_hist = histograms[0]+histograms[1]
+    hist_xy = np.sum(overlapped_hist, axis=2)
+    hist_xy = np.flip(hist_xy, axis=0)
+    hist_xy = np.transpose(hist_xy)
+    ax.imshow(hist_xy)
+    ax.set_xticks(ticks)
+    ax.set_yticks(ticks)
+    ax.set_yticklabels(['{:.1f}'.format(label) for label in labels[::-1]])
+    ax.set_yticklabels([])
+    ax.set_title(f"$N_H={2}$", fontsize=14)
+    ax.set_xticklabels([])
+    ax.set_xticklabels(['{:.1f}'.format(label) for label in labels])
+
+    #fig.colorbar(imgcur, ax=ax[idx], format='%.0e')
+    plt.savefig("onebody_one.pdf", bbox_inches='tight')
     plt.show()
 
 def gaussian_fit(n, alphaopt, betaopt):
@@ -91,16 +125,4 @@ def gaussian_fit(n, alphaopt, betaopt):
 #hist_z = np.sum(HIST_TOT, axis=(0,1))
 
 if __name__ == "__main__":
-    print( "$N$ & $\\alpha^\\star$ & $\\alpha^{\\text{opt}}$ & \
-           $\\beta^\\star$ & $\\beta^{\\text{opt}}$ & \
-           $\\alpha^\\star\\beta^\\star$ & $\\alpha^{\\text{opt}}\\beta^{\\text{opt}}$\
-          \\\\")
-    betaopt = np.array([2.8614,
-    2.9829,
-    2.9920])
-    alphaopt = np.array([0.4941,
-    0.4742,
-    0.4673])
-    # for i, n in enumerate([2,]):
-    #     gaussian_fit(n, alphaopt[i], betaopt[i])
-    plot_hists()
+    plot_hist()
