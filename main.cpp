@@ -150,7 +150,6 @@ int main(int argc, char *argv[]) {
             opt.set_ftol_abs(energyTol);
             opt.optimize(parameters.m_allParams, optimal_energy);
         }
-        parameters.saveParams("./Outputs/optimizedRBMParams.bin");
     }
     //////////////// THE FOLLOWING LINE DOES A LONG SIMULATION WITHOUT GRADIENT COMPUTATION
     else{
