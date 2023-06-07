@@ -1,6 +1,5 @@
 from numpy import log2, zeros, mean, var, sum, loadtxt, arange, \
                   array, cumsum, dot, transpose, diagonal, floor
-from numpy.linalg import inv
 import numpy as np
 import matplotlib.pyplot as plt
 import os
@@ -52,27 +51,29 @@ def block(x):
 
 
 if __name__ =="__main__":
-    print(f"$N$ & \t\t $E$ & \t\t $\\sigma$ & $\\eta$ &  var$(E/N)$ \\\\")
-    N_part_list = [2]
+    print("$N$ & \t\t $E$ & \t\t $\\sigma$ & $\\eta$ &  var$(E/N)$ \\\\")
+    N_part_list = [2,]
     threadnums = np.arange(8)
     #import sampled energies
     energies=np.empty(0)
     errors = np.empty(0)
-    for N_particles in N_part_list:
-        all_energies = np.empty(0)
-        for thread in threadnums:
-            filename="sampledEnergies_" + '2' + "_" + str(thread) + ".bin"
-            x = np.fromfile( os.path.join(OUTPUT_DIR, filename), dtype=float)
-            all_energies= np.append(all_energies, x)
+    for method in ['lbfgs', 'gd']:
+        for nnodes in [2,4,6,8, 10 ]:
+            basename = os.path.join(OUTPUT_DIR, 'OPTIMIZE_RUNS', method+"_2p_"+str(nnodes)+"nodes")
+            for N_particles in N_part_list:
+                all_energies = np.empty(0)
+                for thread in threadnums:
+                    filename="sampledEnergies_" + '2' + "_" + str(thread) + ".bin"
+                    x = np.fromfile( os.path.join(basename, filename), dtype=float)
+                    all_energies= np.append(all_energies, x)
 
-        avg_energy = np.mean(all_energies)
-        variance_energy = np.var(all_energies)
-        #block gives variance, want std.
-        error = np.sqrt(block(x))
-        energies = np.append(energies, avg_energy)
-        errors = np.append(errors, error)
-        print(f"{N_particles} & \t {avg_energy:.6f} & \t {error:.1e} & {avg_energy/(1+np.sqrt(2)):.6f} & \
-              {variance_energy:.1e} \\\\")
+                avg_energy = np.mean(all_energies)
+                variance_energy = np.var(all_energies)
+                #block gives variance, want std.
+                error = np.sqrt(block(x))
+                energies = np.append(energies, avg_energy)
+                errors = np.append(errors, error)
+                print(f"{nnodes} & {method} & \t {N_particles} & \t {avg_energy:.6f} & \t {error:.1e} & {avg_energy/(1.5):.6f} & {variance_energy:.1e} \\\\")
 
     # plt.errorbar(N_part_list, energies, yerr=errors, linestyle='none', marker='.', capsize=10 )
     # plt.xlabel("number of particles")

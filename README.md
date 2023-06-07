@@ -34,7 +34,12 @@ The python scripts for the data analysis are contained in the `DataAnalysis` fol
 * `onebodydensity.py` computes and plots the histograms and the corresponding gaussian fit.
 * `blocking.py` contains the blocking function provided by [Marius Jonsson](https://github.com/computative/block) and uses it to analyse the simulation data.
 
-## Authors
-[David Svejda](https://github.com/DavidSvejda2507)<br>
-[Gianmarco Puleo](https://github.com/giammy00) <br>
+## Authors<div align="center">
+  <a href="https://github.com/giammy00">
+    <img src="https://avatars.githubusercontent.com/u/74814411" alt="Gianmarco Puleo" width="100" height="100">
+  </a>
+  <br>
+  <a href="https://github.com/giammy00">Gianmarco Puleo</a>
+</div>
+
 
