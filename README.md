@@ -35,6 +35,6 @@ The python scripts for the data analysis are contained in the `DataAnalysis` fol
 * `blocking.py` contains the blocking function provided by [Marius Jonsson](https://github.com/computative/block) and uses it to analyse the simulation data.
 
 ## Authors
-[David Svejda](https://github.com/DavidSvejda2507)<br>
-[Gianmarco Puleo](https://github.com/giammy00) <br>
+[![Gianmarco Puleo](https://avatars.githubusercontent.com/u/74814411?s=400&u=37cb20f6585264eaf4497f79a4d8241528520ec2&v=4)](https://github.com/giammy00)
+[![Leonardo Di Caprio](https://github.com/linktogithubprofile/profilepic.jpg)](https://github.com/linktogithubprofile)
 
