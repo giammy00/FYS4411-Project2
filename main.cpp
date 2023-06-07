@@ -130,7 +130,7 @@ int main(int argc, char *argv[]) {
         cout << "Optimizing wave function with gradient method " << OPTIMIZATION_ALGORITHM << endl;
         double optimal_energy;
         //this rng is used to construct the wavefunction parameters
-        auto rngP =  Random(32384);
+        auto rngP =  Random(0);
         RBMParams parameters = RBMParams(2*simPar.numberOfParticles, //number of visible nodes
                                         simPar.N_hidden,  //number of hidden nodes   
                                         &rngP);
