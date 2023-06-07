@@ -24,6 +24,7 @@ def get_histogram(N, folder="./Outputs", NX=100, NY=100, NZ=100):
     #HIST_TOT=HIST_TOT/np.max(HIST_TOT)
     return [hist_tot_a, hist_tot_b]
 
+
 ####PLOT TWO HISTOGRAMS 
 def plot_hists_all():
     ticks = np.linspace(0, 100, 4)
@@ -112,6 +113,72 @@ def plot_hist_seeds(seeds=["31415", "92653", "58979", "32384"]):
     plt.savefig("onebody_seeds.pdf", bbox_inches='tight')
     plt.show()
 
+def plot_hist_seeds_indiv(seeds=["31415", "92653", "58979", "32384"]):
+    ticks = np.linspace(0, 100, 4)
+    labels = np.linspace(-1.5, 1.5, 4)
+    fig, ax = plt.subplots(3,4,figsize=(9,4))
+    print(ax)
+    for i in range(0,len(seeds)):
+        #fig, ax = plt.subplots(2,2,i)
+        seed=seeds[i]
+        folder="./Outputs/"+seed
+        histograms = get_histogram(N=2, folder=folder)
+        ax[0][i].set_title("seed="+seed, fontsize=14)
+        #overlapped_hist = histograms[0]+histograms[1]
+        hist_xy = np.sum(histograms[0], axis=2)
+        hist_xy = np.flip(hist_xy, axis=0)
+        hist_xy = np.transpose(hist_xy)
+        ax[0][i].imshow(hist_xy)
+        ax[0][i].set_xticks([])
+        ax[0][i].set_yticks(ticks)
+        if i==0:
+            ax[0][i].set_yticklabels(['{:.1f}'.format(label) for label in labels[::-1]])
+        else:
+            ax[0][i].set_yticklabels([])
+        #ax[i].set_yticklabels(['{:.1f}'.format(label) for label in labels[::-1]])
+        #ax[i].set_yticklabels([])
+        #ax.set_title(f"$N_H={2}$", fontsize=14)
+        #ax[0][i].set_xticklabels([])
+        #ax[0][i].set_xticklabels(['{:.1f}'.format(label) for label in labels])
+
+        hist_xy = np.sum(histograms[1], axis=2)
+        hist_xy = np.flip(hist_xy, axis=0)
+        hist_xy = np.transpose(hist_xy)
+        ax[1][i].imshow(hist_xy)
+        ax[1][i].set_xticks([])
+        ax[1][i].set_yticks(ticks)
+        if i==0:
+            ax[1][i].set_yticklabels(['{:.1f}'.format(label) for label in labels[::-1]])
+        else:
+            ax[1][i].set_yticklabels([])
+        #ax[i].set_yticklabels(['{:.1f}'.format(label) for label in labels[::-1]])
+        #ax[i].set_yticklabels([])
+        #ax.set_title(f"$N_H={2}$", fontsize=14)
+        #ax[1][i].set_xticklabels([])
+        #ax[1][i].set_xticklabels(['{:.1f}'.format(label) for label in labels])
+        
+        overlapped_hist = histograms[0]+histograms[1]
+        hist_xy = np.sum(overlapped_hist, axis=2)
+        hist_xy = np.flip(hist_xy, axis=0)
+        hist_xy = np.transpose(hist_xy)
+        ax[2][i].imshow(hist_xy)
+        ax[2][i].set_xticks(ticks)
+        ax[2][i].set_yticks(ticks)
+        if i==0:
+            ax[2][i].set_yticklabels(['{:.1f}'.format(label) for label in labels[::-1]])
+        else:
+            ax[2][i].set_yticklabels([])
+        #ax[i].set_yticklabels(['{:.1f}'.format(label) for label in labels[::-1]])
+        #ax[i].set_yticklabels([])
+        #ax.set_title(f"$N_H={2}$", fontsize=14)
+        ax[2][i].set_xticklabels([])
+        ax[2][i].set_xticklabels(['{:.1f}'.format(label) for label in labels])
+
+    #fig.colorbar(imgcur, ax=ax[idx], format='%.0e')
+    plt.savefig("onebody_seeds_individuals.pdf", bbox_inches='tight')
+    plt.show()
+
+
 def gaussian_fit(n, alphaopt, betaopt):
 
     #get histograms along xy plane and z direction
@@ -158,4 +225,4 @@ def gaussian_fit(n, alphaopt, betaopt):
 
 if __name__ == "__main__":
     #plot_hist()
-    plot_hist_seeds()
+    plot_hist_seeds_indiv()
